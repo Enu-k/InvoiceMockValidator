@@ -21,137 +21,283 @@
             </div>
         </div>
         
-        <form id="invoice-form">
-            <input type="hidden" id="job-id" value="{{ job.job_id }}">
-            
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card bg-dark h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0">Vendor Information</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="vendor-name" class="form-label">Vendor Name</label>
+        <!-- View Controls -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-end">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="form-view-btn">Form View</button>
+                    <button type="button" class="btn btn-outline-primary" id="json-view-btn">JSON View</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form View -->
+        <div id="form-view">
+            <form id="invoice-form">
+                <input type="hidden" id="job-id" value="{{ job.job_id }}">
+                
+                <!-- Basic Invoice Information Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Basic Invoice Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="vendor-name" class="form-label">Vendor Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="vendor-name" name="vendor[name]" value="{{ results.vendor.name if results.vendor and results.vendor.name else '' }}" required>
+                                <small class="form-text text-muted">Select from vendor master data</small>
                             </div>
-                            <div class="mb-3">
-                                <label for="vendor-gstin" class="form-label">GSTIN</label>
-                                <input type="text" class="form-control" id="vendor-gstin" name="vendor[gstin]" value="{{ results.vendor.gstin if results.vendor and results.vendor.gstin else '' }}" required>
+                            <div class="col-md-4 mb-3">
+                                <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="department" name="department" required>
+                                    <option value="" disabled selected>Select Department</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="operations">Operations</option>
+                                    <option value="it">IT</option>
+                                    <option value="marketing">Marketing</option>
+                                </select>
+                                <small class="form-text text-muted">Required for approval workflow</small>
                             </div>
-                            <div class="mb-3">
-                                <label for="vendor-address" class="form-label">Address</label>
-                                <textarea class="form-control" id="vendor-address" name="vendor[address]" rows="2">{{ results.vendor.address if results.vendor and results.vendor.address else '' }}</textarea>
+                            <div class="col-md-4 mb-3">
+                                <label for="sub-department" class="form-label">Sub-department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="sub-department" name="sub_department" required>
+                                    <option value="" disabled selected>Select Sub-department</option>
+                                    <option value="accounts_payable">Accounts Payable</option>
+                                    <option value="general_ledger">General Ledger</option>
+                                    <option value="tax">Tax</option>
+                                    <option value="treasury">Treasury</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="invoice-number" class="form-label">Invoice Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="invoice-number" name="invoice_number" value="{{ results.invoice_number if results.invoice_number else '' }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="invoice-date" class="form-label">Invoice Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="invoice-date" name="invoice_date" value="{{ results.invoice_date if results.invoice_date else '' }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="due-date" class="form-label">Payment Due Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="due-date" name="due_date" value="{{ results.due_date if results.due_date else '' }}" required>
+                                <small class="form-text text-muted">Auto-calculated based on vendor terms</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="fiscal-year" class="form-label">Fiscal Year <span class="text-danger">*</span></label>
+                                <select class="form-select" id="fiscal-year" name="fiscal_year" required>
+                                    <option value="2025" selected>2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="e-invoice" class="form-label">E-invoice <span class="text-danger">*</span></label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="e-invoice" name="e_invoice" value="1">
+                                    <label class="form-check-label" for="e-invoice">Yes</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="irn" class="form-label">IRN</label>
+                                <input type="text" class="form-control" id="irn" name="irn" value="{{ results.irn if results.irn else '' }}">
+                                <small class="form-text text-muted">Required if e-invoice is selected</small>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-md-6">
-                    <div class="card bg-dark h-100">
-                        <div class="card-header">
-                            <h5 class="mb-0">Customer Information</h5>
+                <!-- Tax Information Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tax Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-gstin" class="form-label">GSTIN <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="vendor-gstin" name="vendor[gstin]" value="{{ results.vendor.gstin if results.vendor and results.vendor.gstin else '' }}" required pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}" maxlength="15">
+                                <small class="form-text text-muted">15-digit GSTIN number of the vendor</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="state-of-registration" class="form-label">State of Registration <span class="text-danger">*</span></label>
+                                <select class="form-select" id="state-of-registration" name="state_of_registration" required>
+                                    <option value="" disabled selected>Auto-populated from GSTIN</option>
+                                </select>
+                                <small class="form-text text-muted">Auto-populated based on GSTIN</small>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="customer-name" class="form-label">Customer Name</label>
-                                <input type="text" class="form-control" id="customer-name" name="customer[name]" value="{{ results.customer.name if results.customer and results.customer.name else '' }}" required>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="business-place-code" class="form-label">Business Place Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="business-place-code" name="business_place_code" value="{{ results.business_place_code if results.business_place_code else '' }}" readonly>
+                                <small class="form-text text-muted">Auto-populated based on GSTIN</small>
                             </div>
-                            <div class="mb-3">
-                                <label for="customer-gstin" class="form-label">GSTIN</label>
-                                <input type="text" class="form-control" id="customer-gstin" name="customer[gstin]" value="{{ results.customer.gstin if results.customer and results.customer.gstin else '' }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="customer-address" class="form-label">Shipping Address</label>
-                                <textarea class="form-control" id="customer-address" name="customer[address]" rows="2">{{ results.customer.address if results.customer and results.customer.address else '' }}</textarea>
+                            <div class="col-md-6 mb-3">
+                                <label for="bill-to-location" class="form-label">Bill to Location <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bill-to-location" name="bill_to_location" required>
+                                    <option value="" disabled selected>Select Location</option>
+                                    <option value="bangalore">Bangalore</option>
+                                    <option value="mumbai">Mumbai</option>
+                                    <option value="delhi">Delhi</option>
+                                    <option value="hyderabad">Hyderabad</option>
+                                </select>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card bg-dark mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Invoice Details</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label for="invoice-number" class="form-label">Invoice Number</label>
-                            <input type="text" class="form-control" id="invoice-number" name="invoice_number" value="{{ results.invoice_number if results.invoice_number else '' }}" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="invoice-date" class="form-label">Invoice Date</label>
-                            <input type="date" class="form-control" id="invoice-date" name="invoice_date" value="{{ results.invoice_date if results.invoice_date else '' }}" required>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="due-date" class="form-label">Due Date</label>
-                            <input type="date" class="form-control" id="due-date" name="due_date" value="{{ results.due_date if results.due_date else '' }}">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="po-number" class="form-label">PO Number</label>
-                            <input type="text" class="form-control" id="po-number" name="po_number" value="{{ results.po_number if results.po_number else '' }}">
-                        </div>
+                
+                <!-- Item Details Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Item Details</h5>
+                        <button type="button" class="btn btn-sm btn-outline-info" id="add-line-item">
+                            <i data-feather="plus"></i> Add Item
+                        </button>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="place-of-supply" class="form-label">Place of Supply</label>
-                            <input type="text" class="form-control" id="place-of-supply" name="place_of_supply" value="{{ results.place_of_supply if results.place_of_supply else '' }}">
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="rate-card" name="rate_card" value="1">
+                                    <label class="form-check-label" for="rate-card">Rate Card</label>
+                                    <small class="form-text text-muted ms-2">Check if items are from an approved rate contract</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="terms" class="form-label">Terms</label>
-                            <input type="text" class="form-control" id="terms" name="terms" value="{{ results.terms if results.terms else 'Immediate' }}">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card bg-dark mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Line Items</h5>
-                    <button type="button" class="btn btn-sm btn-outline-info" id="add-line-item">
-                        <i data-feather="plus"></i> Add Item
-                    </button>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-dark">
-                            <thead>
-                                <tr>
-                                    <th style="width: 30%">Description</th>
-                                    <th>HSN/SAC</th>
-                                    <th>Qty</th>
-                                    <th>Rate</th>
-                                    <th>Tax %</th>
-                                    <th>Tax Amt</th>
-                                    <th>Amount</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody id="line-items-container">
-                                {% if results.line_items %}
-                                    {% for item in results.line_items %}
+                        
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Item Name <span class="text-danger">*</span></th>
+                                        <th>Item Code</th>
+                                        <th>Account Code <span class="text-danger">*</span></th>
+                                        <th>Qty <span class="text-danger">*</span></th>
+                                        <th>Rate <span class="text-danger">*</span></th>
+                                        <th>GST % <span class="text-danger">*</span></th>
+                                        <th>GST Amt</th>
+                                        <th>TDS %</th>
+                                        <th>TDS Amt</th>
+                                        <th>Total <span class="text-danger">*</span></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="line-items-container">
+                                    {% if results.line_items %}
+                                        {% for item in results.line_items %}
+                                            <tr class="line-item">
+                                                <td>
+                                                    <select class="form-select form-select-sm item-name" name="line_items[{{ loop.index0 }}][name]" required>
+                                                        <option value="" disabled {% if not item.description %}selected{% endif %}>Select Item</option>
+                                                        <option value="{{ item.description }}" {% if item.description %}selected{% endif %}>{{ item.description }}</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control form-control-sm item-code" name="line_items[{{ loop.index0 }}][item_code]" value="" readonly>
+                                                </td>
+                                                <td>
+                                                    <select class="form-select form-select-sm account-code" name="line_items[{{ loop.index0 }}][account_code]" required>
+                                                        <option value="" disabled selected>Select</option>
+                                                        <option value="5001">5001 - Inventory</option>
+                                                        <option value="5002">5002 - Services</option>
+                                                        <option value="5003">5003 - Fixed Assets</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="1" min="1" class="form-control form-control-sm item-qty" name="line_items[{{ loop.index0 }}][quantity]" value="{{ item.quantity|int }}" required>
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" min="0" class="form-control form-control-sm item-rate" name="line_items[{{ loop.index0 }}][rate]" value="{{ item.rate }}" required>
+                                                </td>
+                                                <td>
+                                                    <select class="form-select form-select-sm item-gst-pct" name="line_items[{{ loop.index0 }}][gst_percentage]" required>
+                                                        <option value="0" {% if item.tax_percentage == 0 %}selected{% endif %}>0%</option>
+                                                        <option value="5" {% if item.tax_percentage == 5 %}selected{% endif %}>5%</option>
+                                                        <option value="12" {% if item.tax_percentage == 12 %}selected{% endif %}>12%</option>
+                                                        <option value="18" {% if item.tax_percentage == 18 %}selected{% endif %}>18%</option>
+                                                        <option value="28" {% if item.tax_percentage == 28 %}selected{% endif %}>28%</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" class="form-control form-control-sm item-gst-amt" name="line_items[{{ loop.index0 }}][gst_amount]" value="{{ item.tax_amount }}" readonly>
+                                                </td>
+                                                <td>
+                                                    <select class="form-select form-select-sm item-tds-pct" name="line_items[{{ loop.index0 }}][tds_percentage]">
+                                                        <option value="0" selected>0%</option>
+                                                        <option value="1">1%</option>
+                                                        <option value="2">2%</option>
+                                                        <option value="10">10%</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" class="form-control form-control-sm item-tds-amt" name="line_items[{{ loop.index0 }}][tds_amount]" value="0" readonly>
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" class="form-control form-control-sm item-total" name="line_items[{{ loop.index0 }}][total]" value="{{ item.amount }}" readonly>
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-line-item">
+                                                        <i data-feather="trash-2"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
                                         <tr class="line-item">
                                             <td>
-                                                <input type="text" class="form-control form-control-sm item-description" name="line_items[{{ loop.index0 }}][description]" value="{{ item.description }}" required>
+                                                <select class="form-select form-select-sm item-name" name="line_items[0][name]" required>
+                                                    <option value="" disabled selected>Select Item</option>
+                                                    <option value="laptop">Laptop</option>
+                                                    <option value="desktop">Desktop</option>
+                                                    <option value="monitor">Monitor</option>
+                                                    <option value="software_license">Software License</option>
+                                                </select>
                                             </td>
                                             <td>
-                                                <input type="text" class="form-control form-control-sm item-hsn" name="line_items[{{ loop.index0 }}][hsn_sac]" value="{{ item.hsn_sac }}">
+                                                <input type="text" class="form-control form-control-sm item-code" name="line_items[0][item_code]" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm item-qty" name="line_items[{{ loop.index0 }}][quantity]" value="{{ item.quantity }}" required>
+                                                <select class="form-select form-select-sm account-code" name="line_items[0][account_code]" required>
+                                                    <option value="" disabled selected>Select</option>
+                                                    <option value="5001">5001 - Inventory</option>
+                                                    <option value="5002">5002 - Services</option>
+                                                    <option value="5003">5003 - Fixed Assets</option>
+                                                </select>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm item-rate" name="line_items[{{ loop.index0 }}][rate]" value="{{ item.rate }}" required>
+                                                <input type="number" step="1" min="1" class="form-control form-control-sm item-qty" name="line_items[0][quantity]" value="1" required>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm item-tax-pct" name="line_items[{{ loop.index0 }}][tax_percentage]" value="{{ item.tax_percentage }}" required>
+                                                <input type="number" step="0.01" min="0" class="form-control form-control-sm item-rate" name="line_items[0][rate]" required>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm item-tax-amt" name="line_items[{{ loop.index0 }}][tax_amount]" value="{{ item.tax_amount }}" required>
+                                                <select class="form-select form-select-sm item-gst-pct" name="line_items[0][gst_percentage]" required>
+                                                    <option value="0">0%</option>
+                                                    <option value="5">5%</option>
+                                                    <option value="12">12%</option>
+                                                    <option value="18" selected>18%</option>
+                                                    <option value="28">28%</option>
+                                                </select>
                                             </td>
                                             <td>
-                                                <input type="number" step="0.01" class="form-control form-control-sm item-amount" name="line_items[{{ loop.index0 }}][amount]" value="{{ item.amount }}" required>
+                                                <input type="number" step="0.01" class="form-control form-control-sm item-gst-amt" name="line_items[0][gst_amount]" value="0" readonly>
+                                            </td>
+                                            <td>
+                                                <select class="form-select form-select-sm item-tds-pct" name="line_items[0][tds_percentage]">
+                                                    <option value="0" selected>0%</option>
+                                                    <option value="1">1%</option>
+                                                    <option value="2">2%</option>
+                                                    <option value="10">10%</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" class="form-control form-control-sm item-tds-amt" name="line_items[0][tds_amount]" value="0" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="number" step="0.01" class="form-control form-control-sm item-total" name="line_items[0][total]" value="0" readonly>
                                             </td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-outline-danger remove-line-item">
@@ -159,265 +305,259 @@
                                                 </button>
                                             </td>
                                         </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr class="line-item">
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm item-description" name="line_items[0][description]" required>
-                                        </td>
-                                        <td>
-                                            <input type="text" class="form-control form-control-sm item-hsn" name="line_items[0][hsn_sac]">
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm item-qty" name="line_items[0][quantity]" required>
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm item-rate" name="line_items[0][rate]" required>
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm item-tax-pct" name="line_items[0][tax_percentage]" value="18" required>
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm item-tax-amt" name="line_items[0][tax_amount]" required>
-                                        </td>
-                                        <td>
-                                            <input type="number" step="0.01" class="form-control form-control-sm item-amount" name="line_items[0][amount]" required>
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-outline-danger remove-line-item">
-                                                <i data-feather="trash-2"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card bg-dark mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Summary</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 offset-md-6">
-                            <table class="table table-dark">
-                                <tbody>
-                                    <tr>
-                                        <th>Subtotal</th>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-end" id="subtotal" name="subtotal" value="{{ results.subtotal if results.subtotal else '' }}" required>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Discount</th>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-end" id="discount" name="discount" value="{{ results.discount if results.discount else 0 }}">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Tax Amount</th>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-end" id="tax-amount" name="tax_amount" value="{{ results.tax_amount if results.tax_amount else '' }}" required>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th>Total Amount</th>
-                                        <td class="text-end">
-                                            <input type="number" step="0.01" class="form-control form-control-sm text-end" id="total-amount" name="total_amount" value="{{ results.total_amount if results.total_amount else '' }}" required>
-                                        </td>
-                                    </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </div>
-            
+                
+                <!-- Summary Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="narration" class="form-label">Narration</label>
+                                    <textarea class="form-control" id="narration" name="narration" rows="3">{{ results.notes if results.notes else '' }}</textarea>
+                                    <small class="form-text text-muted">Additional comments for this invoice</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-dark">
+                                    <tbody>
+                                        <tr>
+                                            <th>Subtotal</th>
+                                            <td class="text-end">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" id="subtotal" name="subtotal" value="{{ results.subtotal if results.subtotal else '' }}" readonly>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total GST</th>
+                                            <td class="text-end">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" id="total-gst" name="total_gst" value="{{ results.tax_amount if results.tax_amount else '' }}" readonly>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Total TDS</th>
+                                            <td class="text-end">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" id="total-tds" name="total_tds" value="0" readonly>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>Discount</th>
+                                            <td class="text-end">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" id="discount" name="discount" value="{{ results.discount if results.discount else 0 }}">
+                                            </td>
+                                        </tr>
+                                        <tr class="fw-bold">
+                                            <th>Total Amount</th>
+                                            <td class="text-end">
+                                                <input type="number" step="0.01" class="form-control form-control-sm text-end" id="total-amount" name="total_amount" value="{{ results.total_amount if results.total_amount else '' }}" readonly>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
+                        <i data-feather="arrow-left"></i> Back
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" id="validate-btn">
+                            <i data-feather="check-circle"></i> Validate
+                        </button>
+                        <button type="button" class="btn btn-primary" id="submit-btn">
+                            <i data-feather="save"></i> Submit Invoice
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- JSON View -->
+        <div id="json-view" style="display: none;">
             <div class="card bg-dark mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Notes</h5>
+                    <h5 class="mb-0">JSON Output</h5>
                 </div>
                 <div class="card-body">
-                    <textarea class="form-control" id="notes" name="notes" rows="2">{{ results.notes if results.notes else 'Thanks for your business.' }}</textarea>
+                    <pre id="json-output" class="bg-dark text-light p-3" style="max-height: 500px; overflow-y: auto;">{{ results|tojson(indent=2) }}</pre>
                 </div>
             </div>
-            
-            <div id="validation-errors" class="alert alert-danger d-none">
-                <h5>Validation Errors</h5>
-                <ul id="error-list"></ul>
-            </div>
-            
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-outline-secondary me-md-2" onclick="window.history.back();">
+            <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" onclick="window.history.back()">
                     <i data-feather="arrow-left"></i> Back
                 </button>
-                <button type="button" class="btn btn-outline-info me-md-2" id="validate-btn">
-                    <i data-feather="check-circle"></i> Validate
-                </button>
-                <button type="submit" class="btn btn-info" id="submit-btn">
-                    <i data-feather="save"></i> Submit Invoice
+                <button type="button" class="btn btn-outline-primary" id="copy-json-btn">
+                    <i data-feather="copy"></i> Copy JSON
                 </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- Validation Modal -->
+<div class="modal fade" id="validation-modal" tabindex="-1" aria-labelledby="validation-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title" id="validation-modal-label">Validation Results</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="validation-results">
+                <!-- Validation results will be displayed here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const invoiceForm = document.getElementById('invoice-form');
-        const lineItemsContainer = document.getElementById('line-items-container');
-        const addLineItemBtn = document.getElementById('add-line-item');
-        const validateBtn = document.getElementById('validate-btn');
-        const submitBtn = document.getElementById('submit-btn');
-        const validationErrors = document.getElementById('validation-errors');
-        const errorList = document.getElementById('error-list');
-        const jobId = document.getElementById('job-id').value;
-        
-        // Initialize Feather icons for dynamically added elements
+        // Initialize Feather icons
         feather.replace();
         
-        // Add line item
-        addLineItemBtn.addEventListener('click', function() {
-            const index = document.querySelectorAll('.line-item').length;
-            const newRow = createLineItemRow(index);
-            lineItemsContainer.appendChild(newRow);
-            
-            // Re-initialize feather icons
-            feather.replace();
-            
-            // Add event listeners to new row
-            setupLineItemEvents(newRow);
+        // Toggle views
+        const formViewBtn = document.getElementById('form-view-btn');
+        const jsonViewBtn = document.getElementById('json-view-btn');
+        const formView = document.getElementById('form-view');
+        const jsonView = document.getElementById('json-view');
+        
+        formViewBtn.addEventListener('click', function() {
+            formView.style.display = 'block';
+            jsonView.style.display = 'none';
+            formViewBtn.classList.add('active');
+            jsonViewBtn.classList.remove('active');
         });
         
-        // Set up line item event listeners
-        document.querySelectorAll('.line-item').forEach(row => {
-            setupLineItemEvents(row);
+        jsonViewBtn.addEventListener('click', function() {
+            formView.style.display = 'none';
+            jsonView.style.display = 'block';
+            formViewBtn.classList.remove('active');
+            jsonViewBtn.classList.add('active');
         });
         
-        // Validate button click
-        validateBtn.addEventListener('click', function() {
-            validateInvoice();
+        // Copy JSON button
+        const copyJsonBtn = document.getElementById('copy-json-btn');
+        copyJsonBtn.addEventListener('click', function() {
+            const jsonText = document.getElementById('json-output').textContent;
+            navigator.clipboard.writeText(jsonText).then(function() {
+                alert('JSON copied to clipboard!');
+            }, function() {
+                alert('Failed to copy JSON.');
+            });
         });
         
-        // Submit form
-        invoiceForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Validate one more time
-            validateInvoice(true);
-        });
+        // Line item functions
+        const addLineItemBtn = document.getElementById('add-line-item');
+        const lineItemsContainer = document.getElementById('line-items-container');
         
-        // Function to create a new line item row
-        function createLineItemRow(index) {
-            const tr = document.createElement('tr');
-            tr.className = 'line-item';
-            tr.innerHTML = `
-                <td>
-                    <input type="text" class="form-control form-control-sm item-description" name="line_items[${index}][description]" required>
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm item-hsn" name="line_items[${index}][hsn_sac]">
-                </td>
-                <td>
-                    <input type="number" step="0.01" class="form-control form-control-sm item-qty" name="line_items[${index}][quantity]" required>
-                </td>
-                <td>
-                    <input type="number" step="0.01" class="form-control form-control-sm item-rate" name="line_items[${index}][rate]" required>
-                </td>
-                <td>
-                    <input type="number" step="0.01" class="form-control form-control-sm item-tax-pct" name="line_items[${index}][tax_percentage]" value="18" required>
-                </td>
-                <td>
-                    <input type="number" step="0.01" class="form-control form-control-sm item-tax-amt" name="line_items[${index}][tax_amount]" required>
-                </td>
-                <td>
-                    <input type="number" step="0.01" class="form-control form-control-sm item-amount" name="line_items[${index}][amount]" required>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-line-item">
-                        <i data-feather="trash-2"></i>
-                    </button>
-                </td>
-            `;
-            return tr;
+        if (addLineItemBtn) {
+            addLineItemBtn.addEventListener('click', function() {
+                const lineItems = document.querySelectorAll('.line-item');
+                const newIndex = lineItems.length;
+                
+                const newRow = document.createElement('tr');
+                newRow.className = 'line-item';
+                newRow.innerHTML = `
+                    <td>
+                        <select class="form-select form-select-sm item-name" name="line_items[${newIndex}][name]" required>
+                            <option value="" disabled selected>Select Item</option>
+                            <option value="laptop">Laptop</option>
+                            <option value="desktop">Desktop</option>
+                            <option value="monitor">Monitor</option>
+                            <option value="software_license">Software License</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm item-code" name="line_items[${newIndex}][item_code]" readonly>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm account-code" name="line_items[${newIndex}][account_code]" required>
+                            <option value="" disabled selected>Select</option>
+                            <option value="5001">5001 - Inventory</option>
+                            <option value="5002">5002 - Services</option>
+                            <option value="5003">5003 - Fixed Assets</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" step="1" min="1" class="form-control form-control-sm item-qty" name="line_items[${newIndex}][quantity]" value="1" required>
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" min="0" class="form-control form-control-sm item-rate" name="line_items[${newIndex}][rate]" required>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required>
+                            <option value="0">0%</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18" selected>18%</option>
+                            <option value="28">28%</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" class="form-control form-control-sm item-gst-amt" name="line_items[${newIndex}][gst_amount]" value="0" readonly>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm item-tds-pct" name="line_items[${newIndex}][tds_percentage]">
+                            <option value="0" selected>0%</option>
+                            <option value="1">1%</option>
+                            <option value="2">2%</option>
+                            <option value="10">10%</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" class="form-control form-control-sm item-tds-amt" name="line_items[${newIndex}][tds_amount]" value="0" readonly>
+                    </td>
+                    <td>
+                        <input type="number" step="0.01" class="form-control form-control-sm item-total" name="line_items[${newIndex}][total]" value="0" readonly>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-line-item">
+                            <i data-feather="trash-2"></i>
+                        </button>
+                    </td>
+                `;
+                
+                lineItemsContainer.appendChild(newRow);
+                feather.replace();
+                
+                // Add event listeners to the new row
+                setupLineItemCalculations(newRow);
+            });
         }
         
-        // Function to set up line item events
-        function setupLineItemEvents(row) {
-            // Remove line item
-            const removeBtn = row.querySelector('.remove-line-item');
-            removeBtn.addEventListener('click', function() {
-                if (document.querySelectorAll('.line-item').length > 1) {
-                    row.remove();
-                    updateLineItemIndexes();
-                    calculateTotals();
-                } else {
-                    alert('At least one line item is required.');
+        // Remove line item event delegation
+        if (lineItemsContainer) {
+            lineItemsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-line-item')) {
+                    const button = e.target.closest('.remove-line-item');
+                    const row = button.closest('.line-item');
+                    
+                    // Don't remove if it's the only row
+                    if (document.querySelectorAll('.line-item').length > 1) {
+                        row.remove();
+                        updateLineItemIndices();
+                        updateSummary();
+                    }
                 }
             });
-            
-            // Auto-calculate line item values
-            const qtyInput = row.querySelector('.item-qty');
-            const rateInput = row.querySelector('.item-rate');
-            const taxPctInput = row.querySelector('.item-tax-pct');
-            const taxAmtInput = row.querySelector('.item-tax-amt');
-            const amountInput = row.querySelector('.item-amount');
-            
-            // Calculate amount when qty or rate changes
-            qtyInput.addEventListener('input', function() {
-                calculateLineAmount(row);
-            });
-            
-            rateInput.addEventListener('input', function() {
-                calculateLineAmount(row);
-            });
-            
-            // Calculate tax amount when amount or tax percentage changes
-            amountInput.addEventListener('input', function() {
-                calculateLineTax(row);
-                calculateTotals();
-            });
-            
-            taxPctInput.addEventListener('input', function() {
-                calculateLineTax(row);
-                calculateTotals();
-            });
         }
         
-        // Calculate line amount (qty * rate)
-        function calculateLineAmount(row) {
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-            const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
-            const amount = qty * rate;
-            
-            row.querySelector('.item-amount').value = amount.toFixed(2);
-            
-            // Also update tax amount
-            calculateLineTax(row);
-            
-            // Update totals
-            calculateTotals();
-        }
-        
-        // Calculate line tax (amount * tax_pct / 100)
-        function calculateLineTax(row) {
-            const amount = parseFloat(row.querySelector('.item-amount').value) || 0;
-            const taxPct = parseFloat(row.querySelector('.item-tax-pct').value) || 0;
-            const taxAmt = amount * taxPct / 100;
-            
-            row.querySelector('.item-tax-amt').value = taxAmt.toFixed(2);
-        }
-        
-        // Update line item indexes after removal
-        function updateLineItemIndexes() {
-            const rows = document.querySelectorAll('.line-item');
-            rows.forEach((row, index) => {
-                const inputs = row.querySelectorAll('input');
+        function updateLineItemIndices() {
+            const lineItems = document.querySelectorAll('.line-item');
+            lineItems.forEach((row, index) => {
+                const inputs = row.querySelectorAll('input, select');
                 inputs.forEach(input => {
                     const name = input.getAttribute('name');
                     if (name) {
@@ -428,154 +568,306 @@
             });
         }
         
-        // Calculate invoice totals
-        function calculateTotals() {
+        // Setup line item calculations
+        function setupLineItemCalculations(row) {
+            const qtyInput = row.querySelector('.item-qty');
+            const rateInput = row.querySelector('.item-rate');
+            const gstPctSelect = row.querySelector('.item-gst-pct');
+            const gstAmtInput = row.querySelector('.item-gst-amt');
+            const tdsPctSelect = row.querySelector('.item-tds-pct');
+            const tdsAmtInput = row.querySelector('.item-tds-amt');
+            const totalInput = row.querySelector('.item-total');
+            
+            // Calculate amounts when inputs change
+            [qtyInput, rateInput, gstPctSelect, tdsPctSelect].forEach(input => {
+                input.addEventListener('input', function() {
+                    calculateLineItemAmounts(row);
+                    updateSummary();
+                });
+            });
+        }
+        
+        function calculateLineItemAmounts(row) {
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+            const gstPct = parseFloat(row.querySelector('.item-gst-pct').value) || 0;
+            const tdsPct = parseFloat(row.querySelector('.item-tds-pct').value) || 0;
+            
+            const baseAmount = qty * rate;
+            const gstAmount = baseAmount * (gstPct / 100);
+            const tdsAmount = baseAmount * (tdsPct / 100);
+            const totalAmount = baseAmount + gstAmount - tdsAmount;
+            
+            row.querySelector('.item-gst-amt').value = gstAmount.toFixed(2);
+            row.querySelector('.item-tds-amt').value = tdsAmount.toFixed(2);
+            row.querySelector('.item-total').value = totalAmount.toFixed(2);
+        }
+        
+        // Initialize calculations for existing line items
+        document.querySelectorAll('.line-item').forEach(row => {
+            setupLineItemCalculations(row);
+        });
+        
+        // Update summary calculations
+        function updateSummary() {
             let subtotal = 0;
-            let taxTotal = 0;
+            let totalGst = 0;
+            let totalTds = 0;
             
             document.querySelectorAll('.line-item').forEach(row => {
-                const amount = parseFloat(row.querySelector('.item-amount').value) || 0;
-                const taxAmt = parseFloat(row.querySelector('.item-tax-amt').value) || 0;
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                const gstAmount = parseFloat(row.querySelector('.item-gst-amt').value) || 0;
+                const tdsAmount = parseFloat(row.querySelector('.item-tds-amt').value) || 0;
                 
-                subtotal += amount;
-                taxTotal += taxAmt;
+                subtotal += qty * rate;
+                totalGst += gstAmount;
+                totalTds += tdsAmount;
             });
             
-            const discount = parseFloat(document.getElementById('discount').value) || 0;
-            const total = subtotal - discount + taxTotal;
+            const subtotalInput = document.getElementById('subtotal');
+            const totalGstInput = document.getElementById('total-gst');
+            const totalTdsInput = document.getElementById('total-tds');
+            const discountInput = document.getElementById('discount');
+            const totalAmountInput = document.getElementById('total-amount');
             
-            document.getElementById('subtotal').value = subtotal.toFixed(2);
-            document.getElementById('tax-amount').value = taxTotal.toFixed(2);
-            document.getElementById('total-amount').value = total.toFixed(2);
+            if (subtotalInput) subtotalInput.value = subtotal.toFixed(2);
+            if (totalGstInput) totalGstInput.value = totalGst.toFixed(2);
+            if (totalTdsInput) totalTdsInput.value = totalTds.toFixed(2);
+            
+            const discount = parseFloat(discountInput.value) || 0;
+            const totalAmount = subtotal + totalGst - totalTds - discount;
+            
+            if (totalAmountInput) totalAmountInput.value = totalAmount.toFixed(2);
         }
         
-        // Validate invoice
-        function validateInvoice(submitAfterValidation = false) {
-            // Clear previous errors
-            validationErrors.classList.add('d-none');
-            errorList.innerHTML = '';
-            
-            // Get form data
-            const formData = new FormData(invoiceForm);
-            const jsonData = formDataToJson(formData);
-            
-            // Add job ID
-            jsonData.job_id = jobId;
-            
-            // Call validation API
-            fetch('/api/validate-invoice', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.valid) {
-                    // Show validation errors
-                    validationErrors.classList.remove('d-none');
+        // Calculate initial summary
+        updateSummary();
+        
+        // GSTIN input event to auto-populate state
+        const gstinInput = document.getElementById('vendor-gstin');
+        const stateSelect = document.getElementById('state-of-registration');
+        const businessPlaceInput = document.getElementById('business-place-code');
+        
+        if (gstinInput && stateSelect && businessPlaceInput) {
+            gstinInput.addEventListener('input', function() {
+                const gstin = gstinInput.value.trim();
+                if (gstin.length >= 2) {
+                    const stateCode = gstin.substring(0, 2);
+                    // Map state code to state name
+                    const stateMap = {
+                        '01': 'Jammu & Kashmir',
+                        '02': 'Himachal Pradesh',
+                        '03': 'Punjab',
+                        '04': 'Chandigarh',
+                        '05': 'Uttarakhand',
+                        '06': 'Haryana',
+                        '07': 'Delhi',
+                        '08': 'Rajasthan',
+                        '09': 'Uttar Pradesh',
+                        '10': 'Bihar',
+                        '11': 'Sikkim',
+                        '12': 'Arunachal Pradesh',
+                        '13': 'Nagaland',
+                        '14': 'Manipur',
+                        '15': 'Mizoram',
+                        '16': 'Tripura',
+                        '17': 'Meghalaya',
+                        '18': 'Assam',
+                        '19': 'West Bengal',
+                        '20': 'Jharkhand',
+                        '21': 'Odisha',
+                        '22': 'Chhattisgarh',
+                        '23': 'Madhya Pradesh',
+                        '24': 'Gujarat',
+                        '26': 'Daman & Diu',
+                        '27': 'Maharashtra',
+                        '28': 'Andhra Pradesh',
+                        '29': 'Karnataka',
+                        '30': 'Goa',
+                        '31': 'Lakshadweep',
+                        '32': 'Kerala',
+                        '33': 'Tamil Nadu',
+                        '34': 'Puducherry',
+                        '35': 'Andaman & Nicobar Islands',
+                        '36': 'Telangana',
+                        '37': 'Andhra Pradesh (New)',
+                        '38': 'Ladakh'
+                    };
                     
-                    // Display errors
-                    Object.entries(data.errors).forEach(([field, error]) => {
-                        if (field === 'line_items' && Array.isArray(error)) {
-                            error.forEach(itemError => {
-                                const index = itemError.index;
-                                Object.entries(itemError.errors).forEach(([itemField, itemErrorMsg]) => {
-                                    const li = document.createElement('li');
-                                    li.textContent = `Line item #${index + 1} ${itemField}: ${itemErrorMsg}`;
-                                    errorList.appendChild(li);
-                                });
-                            });
-                        } else {
-                            const li = document.createElement('li');
-                            li.textContent = `${field}: ${error}`;
-                            errorList.appendChild(li);
+                    // Clear and add options
+                    stateSelect.innerHTML = '';
+                    const stateName = stateMap[stateCode] || 'Unknown State';
+                    const option = document.createElement('option');
+                    option.value = stateCode;
+                    option.text = stateName;
+                    option.selected = true;
+                    stateSelect.appendChild(option);
+                    
+                    // Set business place code
+                    businessPlaceInput.value = 'BP-' + stateCode;
+                }
+            });
+            
+            // Trigger for initial value
+            if (gstinInput.value.length >= 2) {
+                gstinInput.dispatchEvent(new Event('input'));
+            }
+        }
+        
+        // Validate button click
+        const validateBtn = document.getElementById('validate-btn');
+        if (validateBtn) {
+            validateBtn.addEventListener('click', function() {
+                // Get form data
+                const formData = getFormData();
+                
+                // Send to validation API
+                fetch('/api/validate-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const validationResults = document.getElementById('validation-results');
+                    
+                    if (data.valid) {
+                        validationResults.innerHTML = `
+                            <div class="alert alert-success">
+                                <h5><i data-feather="check-circle"></i> Validation Successful</h5>
+                                <p>All invoice data is valid.</p>
+                            </div>
+                        `;
+                    } else {
+                        let errorHtml = `
+                            <div class="alert alert-danger">
+                                <h5><i data-feather="x-circle"></i> Validation Failed</h5>
+                                <p>The following errors were found:</p>
+                                <ul>
+                        `;
+                        
+                        for (const field in data.errors) {
+                            errorHtml += `<li><strong>${field}:</strong> ${data.errors[field]}</li>`;
                         }
-                    });
-                    
-                    // Scroll to errors
-                    validationErrors.scrollIntoView({ behavior: 'smooth' });
-                    
-                } else if (submitAfterValidation) {
-                    // Submit to server
-                    submitInvoice(jsonData);
-                } else {
-                    // Show success message
-                    alert('Invoice data is valid!');
-                }
-            })
-            .catch(error => {
-                console.error('Error validating invoice:', error);
-                alert('Error validating invoice. Please try again.');
-            });
-        }
-        
-        // Submit invoice
-        function submitInvoice(jsonData) {
-            fetch('/api/submit-invoice', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(jsonData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(err.error || 'Failed to submit invoice');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    alert('Invoice submitted successfully!');
-                    // Redirect to invoice detail page
-                    window.location.href = `/invoices/${data.invoice_id}`;
-                } else {
-                    throw new Error(data.error || 'Unknown error');
-                }
-            })
-            .catch(error => {
-                console.error('Error submitting invoice:', error);
-                alert(`Error submitting invoice: ${error.message}`);
-            });
-        }
-        
-        // Convert FormData to JSON
-        function formDataToJson(formData) {
-            const jsonData = {
-                vendor: {},
-                customer: {},
-                line_items: []
-            };
-            
-            // Process form data
-            for (const [key, value] of formData.entries()) {
-                if (key.startsWith('vendor[')) {
-                    const field = key.match(/vendor\[(.*?)\]/)[1];
-                    jsonData.vendor[field] = value;
-                } else if (key.startsWith('customer[')) {
-                    const field = key.match(/customer\[(.*?)\]/)[1];
-                    jsonData.customer[field] = value;
-                } else if (key.startsWith('line_items[')) {
-                    const matches = key.match(/line_items\[(\d+)\]\[(.*?)\]/);
-                    const index = parseInt(matches[1]);
-                    const field = matches[2];
-                    
-                    // Ensure array has this index
-                    while (jsonData.line_items.length <= index) {
-                        jsonData.line_items.push({});
+                        
+                        errorHtml += `
+                                </ul>
+                            </div>
+                        `;
+                        
+                        validationResults.innerHTML = errorHtml;
                     }
                     
-                    jsonData.line_items[index][field] = value;
+                    feather.replace();
+                    
+                    // Show the modal
+                    const modal = new bootstrap.Modal(document.getElementById('validation-modal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error validating invoice:', error);
+                    alert('Error validating invoice. Please try again.');
+                });
+            });
+        }
+        
+        // Submit button click
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Get form data
+                const formData = getFormData();
+                
+                // Include job ID
+                formData.job_id = document.getElementById('job-id').value;
+                
+                // Send to submit API
+                fetch('/api/submit-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Invoice submitted successfully!');
+                        window.location.href = `/invoices/${data.invoice_id}`;
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting invoice:', error);
+                    alert('Error submitting invoice. Please try again.');
+                });
+            });
+        }
+        
+        // Helper function to get form data as JSON
+        function getFormData() {
+            const form = document.getElementById('invoice-form');
+            const formData = new FormData(form);
+            
+            // Convert FormData to nested object structure
+            const data = {};
+            
+            for (const [key, value] of formData.entries()) {
+                // Handle nested keys like "vendor[name]"
+                if (key.includes('[')) {
+                    const mainKey = key.split('[')[0];
+                    const subKey = key.split('[')[1].replace(']', '');
+                    
+                    if (!data[mainKey]) {
+                        data[mainKey] = {};
+                    }
+                    
+                    // Handle arrays like "line_items[0][description]"
+                    if (subKey.includes('[')) {
+                        const arrayIndex = parseInt(subKey.split('[')[0]);
+                        const arrayKey = subKey.split('[')[1].replace(']', '');
+                        
+                        if (!Array.isArray(data[mainKey])) {
+                            data[mainKey] = [];
+                        }
+                        
+                        if (!data[mainKey][arrayIndex]) {
+                            data[mainKey][arrayIndex] = {};
+                        }
+                        
+                        data[mainKey][arrayIndex][arrayKey] = value;
+                    } else {
+                        data[mainKey][subKey] = value;
+                    }
                 } else {
-                    jsonData[key] = value;
+                    data[key] = value;
                 }
             }
             
-            return jsonData;
+            // Clean up line_items to be an actual array
+            if (data.line_items && Object.keys(data.line_items).length > 0) {
+                const lineItemsArray = [];
+                
+                for (let i = 0; i < Object.keys(data.line_items).length; i++) {
+                    if (data.line_items[i]) {
+                        lineItemsArray.push(data.line_items[i]);
+                    }
+                }
+                
+                data.line_items = lineItemsArray;
+            }
+            
+            // Add job ID from hidden input
+            data.job_id = document.getElementById('job-id').value;
+            
+            // Add OCR confidence 
+            data.ocr_confidence = {{ results.ocr_confidence if results.ocr_confidence else 0 }};
+            
+            return data;
         }
     });
 </script>
