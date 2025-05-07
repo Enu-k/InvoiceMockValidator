@@ -1,0 +1,689 @@
+{% extends 'base.html' %}
+
+{% block title %}OpenAI OCR Results - Kodo AP{% endblock %}
+
+{% block content %}
+<div class="card bg-dark shadow mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">OpenAI Vision API Results</h3>
+        <span class="badge bg-info">Processed with AI</span>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i data-feather="info" class="feather-lg"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading">OpenAI Processing Results</h5>
+                    <p class="mb-0">Review the extracted information below. You can make corrections if needed before submitting.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Controls -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-end">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary active" id="form-view-btn">Form View</button>
+                    <button type="button" class="btn btn-outline-primary" id="json-view-btn">JSON View</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form View -->
+        <div id="form-view">
+            <form id="invoice-form">
+                <input type="hidden" id="result-id" value="{{ result_id }}">
+                
+                <!-- Basic Invoice Information Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Basic Invoice Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="vendor-name" class="form-label">Vendor Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="vendor-name" name="vendor[name]" value="" required>
+                                <small class="form-text text-muted">Select from vendor master data</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="department" class="form-label">Department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="department" name="department" required>
+                                    <option value="" disabled selected>Select Department</option>
+                                    <option value="finance">Finance</option>
+                                    <option value="operations">Operations</option>
+                                    <option value="it">IT</option>
+                                    <option value="marketing">Marketing</option>
+                                </select>
+                                <small class="form-text text-muted">Required for approval workflow</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="sub-department" class="form-label">Sub-department <span class="text-danger">*</span></label>
+                                <select class="form-select" id="sub-department" name="sub_department" required>
+                                    <option value="" disabled selected>Select Sub-department</option>
+                                    <option value="accounts_payable">Accounts Payable</option>
+                                    <option value="general_ledger">General Ledger</option>
+                                    <option value="tax">Tax</option>
+                                    <option value="treasury">Treasury</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="invoice-number" class="form-label">Invoice Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="invoice-number" name="invoice_number" value="" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="invoice-date" class="form-label">Invoice Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="invoice-date" name="invoice_date" value="" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="due-date" class="form-label">Payment Due Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="due-date" name="due_date" value="" required>
+                                <small class="form-text text-muted">Auto-calculated based on vendor terms</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="fiscal-year" class="form-label">Fiscal Year <span class="text-danger">*</span></label>
+                                <select class="form-select" id="fiscal-year" name="fiscal_year" required>
+                                    <option value="2025" selected>2025</option>
+                                    <option value="2024">2024</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="e-invoice" class="form-label">E-invoice <span class="text-danger">*</span></label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" id="e-invoice" name="e_invoice" value="1">
+                                    <label class="form-check-label" for="e-invoice">Yes</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="irn" class="form-label">IRN</label>
+                                <input type="text" class="form-control" id="irn" name="irn" value="">
+                                <small class="form-text text-muted">Required if e-invoice is selected</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tax Information Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tax Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="vendor-gstin" class="form-label">GSTIN <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="vendor-gstin" name="vendor[gstin]" value="" required pattern="[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}" maxlength="15">
+                                <small class="form-text text-muted">15-digit GSTIN number of the vendor</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="state-of-registration" class="form-label">State of Registration <span class="text-danger">*</span></label>
+                                <select class="form-select" id="state-of-registration" name="state_of_registration" required>
+                                    <option value="" disabled selected>Auto-populated from GSTIN</option>
+                                </select>
+                                <small class="form-text text-muted">Auto-populated based on GSTIN</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="business-place-code" class="form-label">Business Place Code <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="business-place-code" name="business_place_code" value="" readonly>
+                                <small class="form-text text-muted">Auto-populated based on GSTIN</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="bill-to-location" class="form-label">Bill to Location <span class="text-danger">*</span></label>
+                                <select class="form-select" id="bill-to-location" name="bill_to_location" required>
+                                    <option value="" disabled selected>Select Location</option>
+                                    <option value="bangalore">Bangalore</option>
+                                    <option value="mumbai">Mumbai</option>
+                                    <option value="delhi">Delhi</option>
+                                    <option value="hyderabad">Hyderabad</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Item Details Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Item Details</h5>
+                        <button type="button" class="btn btn-sm btn-outline-info" id="add-line-item">
+                            <i data-feather="plus"></i> Add Item
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="rate-card" name="rate_card" value="1">
+                                    <label class="form-check-label" for="rate-card">Rate Card</label>
+                                    <small class="form-text text-muted ms-2">Check if items are from an approved rate contract</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-dark">
+                                <thead>
+                                    <tr>
+                                        <th>Item Name <span class="text-danger">*</span></th>
+                                        <th>Item Code</th>
+                                        <th>Account Code <span class="text-danger">*</span></th>
+                                        <th>Qty <span class="text-danger">*</span></th>
+                                        <th>Rate <span class="text-danger">*</span></th>
+                                        <th>GST % <span class="text-danger">*</span></th>
+                                        <th>GST Amt</th>
+                                        <th>TDS %</th>
+                                        <th>TDS Amt</th>
+                                        <th>Total <span class="text-danger">*</span></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="line-items-container">
+                                    <!-- Line items will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="alert alert-secondary mt-3" id="no-items-alert">
+                            <i data-feather="alert-circle"></i> No line items found. Add items using the "Add Item" button above.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Information Section -->
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Financial Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="subtotal" class="form-label">Subtotal <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="subtotal" name="subtotal" value="" required readonly>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tax-amount" class="form-label">Total Tax <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="tax-amount" name="tax_amount" value="" required readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="discount" class="form-label">Discount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="discount" name="discount" value="">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="total-amount" class="form-label">Total Amount <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="0.01" min="0" class="form-control" id="total-amount" name="total_amount" value="" required readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('views.upload_page') }}" class="btn btn-outline-secondary">
+                        <i data-feather="arrow-left"></i> Back
+                    </a>
+                    <div>
+                        <button type="button" class="btn btn-outline-primary me-2" id="validate-btn">
+                            <i data-feather="check-circle"></i> Validate
+                        </button>
+                        <button type="button" class="btn btn-info" id="submit-btn">
+                            <i data-feather="save"></i> Submit Invoice
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- JSON View -->
+        <div id="json-view" class="d-none">
+            <div class="card bg-dark mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Raw JSON Data</h5>
+                </div>
+                <div class="card-body">
+                    <pre id="json-content" class="bg-dark text-light p-3" style="max-height: 500px; overflow-y: auto;"></pre>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-sm btn-outline-secondary" id="copy-json-btn">
+                        <i data-feather="copy"></i> Copy JSON
+                    </button>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('views.upload_page') }}" class="btn btn-outline-secondary">
+                    <i data-feather="arrow-left"></i> Back
+                </a>
+                <button type="button" class="btn btn-info" id="back-to-form-btn">
+                    <i data-feather="edit-2"></i> Back to Form View
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get result data from localStorage
+        const resultId = document.getElementById('result-id').value;
+        const resultsData = JSON.parse(localStorage.getItem('openai_results'));
+        
+        if (!resultsData) {
+            alert('Error: No results data found. Please try uploading again.');
+            window.location.href = '/upload';
+            return;
+        }
+        
+        // Initialize form with results data
+        initializeForm(resultsData);
+        
+        // Toggle between form and JSON view
+        const formViewBtn = document.getElementById('form-view-btn');
+        const jsonViewBtn = document.getElementById('json-view-btn');
+        const formView = document.getElementById('form-view');
+        const jsonView = document.getElementById('json-view');
+        const jsonContent = document.getElementById('json-content');
+        const backToFormBtn = document.getElementById('back-to-form-btn');
+        
+        formViewBtn.addEventListener('click', function() {
+            formView.classList.remove('d-none');
+            jsonView.classList.add('d-none');
+            formViewBtn.classList.add('active');
+            jsonViewBtn.classList.remove('active');
+        });
+        
+        jsonViewBtn.addEventListener('click', function() {
+            formView.classList.add('d-none');
+            jsonView.classList.remove('d-none');
+            formViewBtn.classList.remove('active');
+            jsonViewBtn.classList.add('active');
+            
+            // Update JSON content
+            jsonContent.textContent = JSON.stringify(resultsData, null, 2);
+            
+            // Initialize feather icons in the JSON view
+            feather.replace();
+        });
+        
+        backToFormBtn.addEventListener('click', function() {
+            formViewBtn.click();
+        });
+        
+        // Copy JSON button
+        const copyJsonBtn = document.getElementById('copy-json-btn');
+        copyJsonBtn.addEventListener('click', function() {
+            const jsonStr = JSON.stringify(resultsData, null, 2);
+            navigator.clipboard.writeText(jsonStr)
+                .then(() => {
+                    alert('JSON copied to clipboard!');
+                })
+                .catch(err => {
+                    console.error('Error copying JSON:', err);
+                    alert('Error copying JSON to clipboard');
+                });
+        });
+        
+        // Add line item button
+        const addLineItemBtn = document.getElementById('add-line-item');
+        addLineItemBtn.addEventListener('click', function() {
+            addLineItemRow();
+            updateTotals();
+            
+            // Hide the "no items" alert if visible
+            document.getElementById('no-items-alert').classList.add('d-none');
+        });
+        
+        // Initialize form with data
+        function initializeForm(data) {
+            // Initialize basic fields
+            if (data.vendor && data.vendor.name) {
+                document.getElementById('vendor-name').value = data.vendor.name;
+            }
+            
+            if (data.vendor && data.vendor.gstin) {
+                document.getElementById('vendor-gstin').value = data.vendor.gstin;
+            }
+            
+            if (data.invoice_number) {
+                document.getElementById('invoice-number').value = data.invoice_number;
+            }
+            
+            if (data.invoice_date) {
+                document.getElementById('invoice-date').value = data.invoice_date;
+            }
+            
+            if (data.due_date) {
+                document.getElementById('due-date').value = data.due_date;
+            }
+            
+            // Initialize line items
+            const lineItemsContainer = document.getElementById('line-items-container');
+            lineItemsContainer.innerHTML = ''; // Clear existing items
+            
+            if (data.line_items && data.line_items.length > 0) {
+                // Hide the "no items" alert
+                document.getElementById('no-items-alert').classList.add('d-none');
+                
+                // Add each line item
+                data.line_items.forEach((item, index) => {
+                    addLineItemRow(item, index);
+                });
+            } else {
+                // Show the "no items" alert
+                document.getElementById('no-items-alert').classList.remove('d-none');
+            }
+            
+            // Set financial totals
+            if (data.subtotal) {
+                document.getElementById('subtotal').value = data.subtotal;
+            }
+            
+            if (data.tax_amount) {
+                document.getElementById('tax-amount').value = data.tax_amount;
+            }
+            
+            if (data.discount) {
+                document.getElementById('discount').value = data.discount;
+            }
+            
+            if (data.total_amount) {
+                document.getElementById('total-amount').value = data.total_amount;
+            }
+            
+            // Update totals
+            updateTotals();
+            
+            // Initialize Feather icons
+            feather.replace();
+        }
+        
+        // Add a line item row
+        function addLineItemRow(itemData = null, index = null) {
+            const lineItemsContainer = document.getElementById('line-items-container');
+            const newIndex = index !== null ? index : lineItemsContainer.children.length;
+            
+            const tr = document.createElement('tr');
+            tr.classList.add('line-item');
+            
+            tr.innerHTML = `
+                <td>
+                    <select class="form-select form-select-sm item-name" name="line_items[${newIndex}][name]" required>
+                        <option value="" disabled ${!itemData?.description ? 'selected' : ''}>Select Item</option>
+                        ${itemData?.description ? `<option value="${itemData.description}" selected>${itemData.description}</option>` : ''}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm item-code" name="line_items[${newIndex}][item_code]" value="" readonly>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm account-code" name="line_items[${newIndex}][account_code]" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="5001">5001 - Inventory</option>
+                        <option value="5002">5002 - Services</option>
+                        <option value="5003">5003 - Fixed Assets</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="1" min="1" class="form-control form-control-sm item-qty" name="line_items[${newIndex}][quantity]" 
+                    value="${itemData?.quantity || 1}" required onchange="updateItemTotal(this)">
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm item-rate" name="line_items[${newIndex}][rate]" 
+                    value="${itemData?.rate || 0}" required onchange="updateItemTotal(this)">
+                </td>
+                <td>
+                    <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required onchange="updateItemTotal(this)">
+                        <option value="0" ${itemData?.tax_percentage === 0 ? 'selected' : ''}>0%</option>
+                        <option value="5" ${itemData?.tax_percentage === 5 ? 'selected' : ''}>5%</option>
+                        <option value="12" ${itemData?.tax_percentage === 12 ? 'selected' : ''}>12%</option>
+                        <option value="18" ${itemData?.tax_percentage === 18 ? 'selected' : ''}>18%</option>
+                        <option value="28" ${itemData?.tax_percentage === 28 ? 'selected' : ''}>28%</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm item-gst-amt" name="line_items[${newIndex}][gst_amount]" 
+                    value="${itemData?.tax_amount || 0}" readonly>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm item-tds-pct" name="line_items[${newIndex}][tds_percentage]" onchange="updateItemTotal(this)">
+                        <option value="0" selected>0%</option>
+                        <option value="2">2%</option>
+                        <option value="10">10%</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm item-tds-amt" name="line_items[${newIndex}][tds_amount]" value="0" readonly>
+                </td>
+                <td>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm item-total" name="line_items[${newIndex}][total]" 
+                    value="${itemData?.amount || 0}" readonly>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="removeLineItem(this)">
+                        <i data-feather="trash-2"></i>
+                    </button>
+                </td>
+            `;
+            
+            lineItemsContainer.appendChild(tr);
+            feather.replace();
+            
+            // Calculate item total
+            if (itemData) {
+                const inputs = tr.querySelectorAll('input, select');
+                for (const input of inputs) {
+                    input.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+        
+        // Update item totals when inputs change
+        window.updateItemTotal = function(input) {
+            const row = input.closest('tr');
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+            const gstPct = parseFloat(row.querySelector('.item-gst-pct').value) || 0;
+            const tdsPct = parseFloat(row.querySelector('.item-tds-pct').value) || 0;
+            
+            const baseAmount = qty * rate;
+            const gstAmount = baseAmount * (gstPct / 100);
+            const tdsAmount = baseAmount * (tdsPct / 100);
+            const totalAmount = baseAmount + gstAmount - tdsAmount;
+            
+            row.querySelector('.item-gst-amt').value = gstAmount.toFixed(2);
+            row.querySelector('.item-tds-amt').value = tdsAmount.toFixed(2);
+            row.querySelector('.item-total').value = totalAmount.toFixed(2);
+            
+            // Update overall totals
+            updateTotals();
+        };
+        
+        // Remove line item
+        window.removeLineItem = function(button) {
+            const row = button.closest('tr');
+            row.remove();
+            
+            // Show the "no items" alert if no items remain
+            const lineItems = document.querySelectorAll('.line-item');
+            if (lineItems.length === 0) {
+                document.getElementById('no-items-alert').classList.remove('d-none');
+            }
+            
+            // Update totals
+            updateTotals();
+        };
+        
+        // Update overall totals
+        function updateTotals() {
+            const rows = document.querySelectorAll('.line-item');
+            let subtotal = 0;
+            let taxTotal = 0;
+            
+            rows.forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const rate = parseFloat(row.querySelector('.item-rate').value) || 0;
+                const gstAmount = parseFloat(row.querySelector('.item-gst-amt').value) || 0;
+                
+                subtotal += qty * rate;
+                taxTotal += gstAmount;
+            });
+            
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const totalAmount = subtotal + taxTotal - discount;
+            
+            document.getElementById('subtotal').value = subtotal.toFixed(2);
+            document.getElementById('tax-amount').value = taxTotal.toFixed(2);
+            document.getElementById('total-amount').value = totalAmount.toFixed(2);
+        }
+        
+        // Validate button click
+        const validateBtn = document.getElementById('validate-btn');
+        if (validateBtn) {
+            validateBtn.addEventListener('click', function() {
+                // Get form data
+                const formData = getFormData();
+                
+                // Send to validate API
+                fetch('/api/validate-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        alert('Invoice data is valid! You can now submit the invoice.');
+                    } else {
+                        let errorMessage = 'Validation errors:\n\n';
+                        
+                        for (const field in data.errors) {
+                            errorMessage += `${field}: ${data.errors[field]}\n`;
+                        }
+                        
+                        alert(errorMessage);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error validating invoice:', error);
+                    alert('Error validating invoice. Please try again.');
+                });
+            });
+        }
+        
+        // Submit button click
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Get form data
+                const formData = getFormData();
+                
+                // Send to submit API
+                fetch('/api/submit-invoice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Invoice submitted successfully!');
+                        window.location.href = `/invoices/${data.invoice_id}`;
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting invoice:', error);
+                    alert('Error submitting invoice. Please try again.');
+                });
+            });
+        }
+        
+        // Helper function to get form data as JSON
+        function getFormData() {
+            const form = document.getElementById('invoice-form');
+            const formData = new FormData(form);
+            
+            // Convert FormData to nested object structure
+            const data = {};
+            
+            for (const [key, value] of formData.entries()) {
+                // Handle nested keys like "vendor[name]"
+                if (key.includes('[')) {
+                    const mainKey = key.split('[')[0];
+                    const subKey = key.split('[')[1].replace(']', '');
+                    
+                    if (!data[mainKey]) {
+                        data[mainKey] = {};
+                    }
+                    
+                    // Handle arrays like "line_items[0][description]"
+                    if (subKey.includes('[')) {
+                        const arrayIndex = parseInt(subKey.split('[')[0]);
+                        const arrayKey = subKey.split('[')[1].replace(']', '');
+                        
+                        if (!Array.isArray(data[mainKey])) {
+                            data[mainKey] = [];
+                        }
+                        
+                        if (!data[mainKey][arrayIndex]) {
+                            data[mainKey][arrayIndex] = {};
+                        }
+                        
+                        data[mainKey][arrayIndex][arrayKey] = value;
+                    } else {
+                        data[mainKey][subKey] = value;
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            // Clean up line_items to be an actual array
+            if (data.line_items && Object.keys(data.line_items).length > 0) {
+                const lineItemsArray = [];
+                
+                for (let i = 0; i < Object.keys(data.line_items).length; i++) {
+                    if (data.line_items[i]) {
+                        lineItemsArray.push(data.line_items[i]);
+                    }
+                }
+                
+                data.line_items = lineItemsArray;
+            }
+            
+            // Add OCR confidence 
+            data.ocr_confidence = 95.0; // OpenAI has high confidence
+            
+            return data;
+        }
+    });
+</script>
+{% endblock %}

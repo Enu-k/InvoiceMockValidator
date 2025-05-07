@@ -115,6 +115,17 @@ def results(job_id):
         results=ocr_results
     )
 
+@view_bp.route('/direct-results/<result_id>')
+def direct_results(result_id):
+    """Render the results page for direct OpenAI processing (no job)"""
+    # This is a client-side only route, as the data is stored in localStorage
+    # The JavaScript on the page will load the results from localStorage
+    
+    return render_template(
+        'direct_results.html',
+        result_id=result_id
+    )
+
 @view_bp.route('/create-sample')
 def create_sample():
     """Create a sample invoice for testing"""

@@ -184,18 +184,46 @@
                     throw new Error(data.error || 'Unknown error occurred');
                 }
                 
-                // Save job ID and start checking status
-                jobId = data.job_id;
+                // Check if using OpenAI direct processing
+                const useOpenAI = document.getElementById('use-openai').checked;
                 
-                // Update UI
-                statusBadge.textContent = 'Processing';
-                statusMessage.textContent = 'OCR processing started...';
-                progressBar.style.width = '25%';
-                progressBar.textContent = '25%';
-                progressBar.setAttribute('aria-valuenow', '25');
-                
-                // Start polling for status
-                checkStatusInterval = setInterval(checkProcessingStatus, 2000);
+                if (useOpenAI) {
+                    // For OpenAI direct processing, results are returned immediately
+                    statusBadge.textContent = 'Completed';
+                    statusBadge.className = 'badge bg-success';
+                    statusMessage.textContent = 'Processing completed with OpenAI!';
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '100%';
+                    progressBar.setAttribute('aria-valuenow', '100');
+                    progressBar.classList.remove('progress-bar-animated');
+                    
+                    // Show success container
+                    processingSpinner.classList.add('d-none');
+                    successContainer.classList.remove('d-none');
+                    
+                    // Store the results in localStorage
+                    localStorage.setItem('openai_results', JSON.stringify(data.data));
+                    
+                    // Create a unique ID for these results
+                    const resultId = 'openai_' + new Date().getTime();
+                    localStorage.setItem('last_result_id', resultId);
+                    
+                    // Set view results button URL to use the temporary ID
+                    viewResultsBtn.href = `/direct-results/${resultId}`;
+                } else {
+                    // Save job ID and start checking status for standard OCR
+                    jobId = data.job_id;
+                    
+                    // Update UI
+                    statusBadge.textContent = 'Processing';
+                    statusMessage.textContent = 'OCR processing started...';
+                    progressBar.style.width = '25%';
+                    progressBar.textContent = '25%';
+                    progressBar.setAttribute('aria-valuenow', '25');
+                    
+                    // Start polling for status
+                    checkStatusInterval = setInterval(checkProcessingStatus, 2000);
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
