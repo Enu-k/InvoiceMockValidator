@@ -469,7 +469,7 @@
                     value="${itemData?.rate || 0}" required onchange="if(window.updateItemTotal) window.updateItemTotal(this)">
                 </td>
                 <td>
-                    <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required onchange="window.updateItemTotal(this)">
+                    <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required onchange="if(window.updateItemTotal) window.updateItemTotal(this)">
                         <option value="0" ${itemData?.tax_percentage === 0 ? 'selected' : ''}>0%</option>
                         <option value="5" ${itemData?.tax_percentage === 5 ? 'selected' : ''}>5%</option>
                         <option value="12" ${itemData?.tax_percentage === 12 ? 'selected' : ''}>12%</option>
@@ -496,7 +496,7 @@
                     value="${itemData?.amount || 0}" readonly>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="window.removeLineItem(this)">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="if(window.removeLineItem) window.removeLineItem(this)">
                         <i data-feather="trash-2"></i>
                     </button>
                 </td>
@@ -532,8 +532,8 @@
             row.querySelector('.item-total').value = totalAmount.toFixed(2);
             
             // Update overall totals
-            if (typeof updateTotals === 'function') {
-                updateTotals();
+            if (typeof window.updateTotals === 'function') {
+                window.updateTotals();
             }
         };
         
@@ -549,8 +549,8 @@
             }
             
             // Update totals
-            if (typeof updateTotals === 'function') {
-                updateTotals();
+            if (typeof window.updateTotals === 'function') {
+                window.updateTotals();
             }
         };
         
