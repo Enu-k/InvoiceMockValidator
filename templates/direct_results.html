@@ -462,11 +462,11 @@
                 </td>
                 <td>
                     <input type="number" step="1" min="1" class="form-control form-control-sm item-qty" name="line_items[${newIndex}][quantity]" 
-                    value="${itemData?.quantity || 1}" required onchange="window.updateItemTotal(this)">
+                    value="${itemData?.quantity || 1}" required onchange="if(window.updateItemTotal) window.updateItemTotal(this)">
                 </td>
                 <td>
                     <input type="number" step="0.01" min="0" class="form-control form-control-sm item-rate" name="line_items[${newIndex}][rate]" 
-                    value="${itemData?.rate || 0}" required onchange="window.updateItemTotal(this)">
+                    value="${itemData?.rate || 0}" required onchange="if(window.updateItemTotal) window.updateItemTotal(this)">
                 </td>
                 <td>
                     <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required onchange="window.updateItemTotal(this)">
@@ -482,7 +482,7 @@
                     value="${itemData?.tax_amount || 0}" readonly>
                 </td>
                 <td>
-                    <select class="form-select form-select-sm item-tds-pct" name="line_items[${newIndex}][tds_percentage]" onchange="window.updateItemTotal(this)">
+                    <select class="form-select form-select-sm item-tds-pct" name="line_items[${newIndex}][tds_percentage]" onchange="if(window.updateItemTotal) window.updateItemTotal(this)">
                         <option value="0" selected>0%</option>
                         <option value="2">2%</option>
                         <option value="10">10%</option>

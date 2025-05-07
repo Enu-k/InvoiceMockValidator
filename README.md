@@ -48,8 +48,28 @@ SESSION_SECRET=your_secure_random_string
 
 2. **Install required packages**
 
+   The project requires the following Python packages, which are already configured in your Replit environment:
+
+   ```
+   flask
+   flask-sqlalchemy
+   gunicorn
+   opencv-python
+   opencv-python-headless
+   pytesseract
+   numpy
+   Pillow
+   psycopg2-binary
+   openai
+   Werkzeug
+   SQLAlchemy
+   email-validator
+   ```
+
+   If installing manually in a different environment:
+
    ```bash
-   pip install -r requirements.txt
+   pip install flask flask-sqlalchemy gunicorn opencv-python pytesseract numpy Pillow psycopg2-binary openai Werkzeug SQLAlchemy email-validator
    ```
 
 3. **Install Tesseract OCR**
