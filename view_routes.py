@@ -101,9 +101,13 @@ def results(job_id):
     ocr_results = {}
     if job.result:
         try:
-            ocr_results = eval(job.result)  # Convert string to dict
-        except:
-            flash('Error parsing OCR results.', 'error')
+            # Use json.loads instead of eval for security and reliability
+            import json
+            ocr_results = json.loads(job.result)
+            logger.debug(f"Successfully parsed OCR results: {ocr_results}")
+        except Exception as e:
+            logger.error(f"Error parsing OCR results: {str(e)}")
+            flash(f'Error parsing OCR results: {str(e)}', 'error')
     
     return render_template(
         'results.html',
