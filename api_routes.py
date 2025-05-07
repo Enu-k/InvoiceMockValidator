@@ -259,6 +259,48 @@ def get_items():
         logger.exception(f"Error getting items: {str(e)}")
         return jsonify({'error': f'Error getting items: {str(e)}'}), 500
 
+@api_bp.route('/test-openai-ocr', methods=['POST'])
+def test_openai_ocr():
+    """
+    Test endpoint to process an invoice with OpenAI directly without async handling
+    """
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+        
+    # Check file extension
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'pdf', 'tiff', 'tif'}
+    if not ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions):
+        return jsonify({'error': 'Invalid file type. Allowed types: png, jpg, jpeg, pdf, tiff, tif'}), 400
+    
+    try:
+        # Check if OpenAI API key is configured
+        if not os.environ.get("OPENAI_API_KEY"):
+            return jsonify({
+                'error': 'OpenAI API key not configured. Set the OPENAI_API_KEY environment variable.'
+            }), 400
+
+        # Save file
+        file_path = ocr_processor.save_uploaded_file(file)
+        
+        # Process directly with OpenAI
+        from openai_processor import OpenAIInvoiceProcessor
+        openai_processor_inst = OpenAIInvoiceProcessor(current_app)
+        result = openai_processor_inst.process_invoice_image(file_path)
+        
+        return jsonify({
+            'success': True,
+            'data': result,
+            'message': 'Invoice processed with OpenAI Vision API'
+        }), 200
+        
+    except Exception as e:
+        logger.exception(f"Error processing with OpenAI: {str(e)}")
+        return jsonify({'error': f'Error processing with OpenAI: {str(e)}'}), 500
+
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     """

@@ -22,6 +22,14 @@
                         <div class="form-text text-muted">Accepted formats: PDF, PNG, JPG, TIFF</div>
                     </div>
                     
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="use-openai" checked>
+                            <label class="form-check-label" for="use-openai">Use OpenAI for enhanced OCR</label>
+                        </div>
+                        <div class="form-text text-muted">Use OpenAI's Vision API for more accurate data extraction</div>
+                    </div>
+                    
                     <div class="mb-3 d-none" id="preview-container">
                         <label class="form-label">Preview</label>
                         <div class="bg-dark rounded p-3 text-center border border-secondary">
@@ -149,8 +157,19 @@
             const formData = new FormData();
             formData.append('file', file);
             
+            // Check if OpenAI is selected
+            const useOpenAI = document.getElementById('use-openai').checked;
+            
+            // Choose the endpoint based on OpenAI selection
+            const endpoint = useOpenAI ? '/api/test-openai-ocr' : '/api/upload';
+            
+            // Update status message
+            statusMessage.textContent = useOpenAI ? 
+                'Processing with OpenAI Vision API...' : 
+                'Processing with standard OCR...';
+            
             // Upload file and start processing
-            fetch('/api/upload', {
+            fetch(endpoint, {
                 method: 'POST',
                 body: formData
             })

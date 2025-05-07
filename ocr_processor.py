@@ -9,9 +9,13 @@ import pytesseract
 from PIL import Image
 import cv2
 import numpy as np
+from openai_processor import OpenAIInvoiceProcessor
 
 # Set the path to the Tesseract executable
 pytesseract.pytesseract.tesseract_cmd = '/nix/store/44vcjbcy1p2yhc974bcw250k2r5x5cpa-tesseract-5.3.4/bin/tesseract'
+
+# Initialize OpenAI processor
+openai_processor = OpenAIInvoiceProcessor()
 from werkzeug.utils import secure_filename
 from threading import Thread
 from flask import current_app
@@ -38,6 +42,10 @@ class InvoiceOCRProcessor:
         
         # Ensure upload folder exists
         os.makedirs(self.upload_folder, exist_ok=True)
+        
+        # Initialize OpenAI processor with app
+        if openai_processor:
+            openai_processor.init_app(app)
     
     def save_uploaded_file(self, file_obj):
         """Save an uploaded file and return the path"""
@@ -113,31 +121,43 @@ class InvoiceOCRProcessor:
         """
         logger.info(f"Processing invoice image: {image_path}")
         
-        # Open the image
         try:
-            # Load image with OpenCV for preprocessing
-            img = cv2.imread(image_path)
-            if img is None:
-                raise ValueError(f"Failed to load image from {image_path}")
-            
-            # Preprocess image for better OCR results
-            preprocessed_img = self._preprocess_image(img)
-            
-            # Convert back to PIL Image for Tesseract
-            pil_img = Image.fromarray(preprocessed_img)
-            
-            # Extract text with Tesseract OCR with additional configuration for structured output
-            ocr_config = r'--oem 3 --psm 6 -c preserve_interword_spaces=1'
-            ocr_data = pytesseract.image_to_data(pil_img, config=ocr_config, output_type=pytesseract.Output.DICT)
-            
-            # Extract text with Tesseract OCR
-            raw_text = pytesseract.image_to_string(pil_img)
-            
-            # Process the OCR data to extract structured information
-            extracted_data = self._extract_invoice_data(raw_text, ocr_data)
-            
-            logger.info(f"Successfully processed invoice image: {image_path}")
-            return extracted_data
+            # Use OpenAI for processing instead of traditional OCR
+            if openai_processor and os.environ.get("OPENAI_API_KEY"):
+                logger.info("Using OpenAI Vision API for invoice processing")
+                # Initialize OpenAI processor with app
+                if self.app and not openai_processor.app:
+                    openai_processor.init_app(self.app)
+                
+                # Process with OpenAI
+                extracted_data = openai_processor.process_invoice_image(image_path)
+                logger.info(f"Successfully processed invoice image with OpenAI: {image_path}")
+                return extracted_data
+            else:
+                logger.info("OpenAI processing not available, using standard OCR")
+                # Load image with OpenCV for preprocessing
+                img = cv2.imread(image_path)
+                if img is None:
+                    raise ValueError(f"Failed to load image from {image_path}")
+                
+                # Preprocess image for better OCR results
+                preprocessed_img = self._preprocess_image(img)
+                
+                # Convert back to PIL Image for Tesseract
+                pil_img = Image.fromarray(preprocessed_img)
+                
+                # Extract text with Tesseract OCR with additional configuration for structured output
+                ocr_config = r'--oem 3 --psm 6 -c preserve_interword_spaces=1'
+                ocr_data = pytesseract.image_to_data(pil_img, config=ocr_config, output_type=pytesseract.Output.DICT)
+                
+                # Extract text with Tesseract OCR
+                raw_text = pytesseract.image_to_string(pil_img)
+                
+                # Process the OCR data to extract structured information
+                extracted_data = self._extract_invoice_data(raw_text, ocr_data)
+                
+                logger.info(f"Successfully processed invoice image with standard OCR: {image_path}")
+                return extracted_data
             
         except Exception as e:
             logger.exception(f"Error processing invoice image {image_path}: {str(e)}")
