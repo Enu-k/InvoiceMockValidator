@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Kodo AP - Invoice Processing System{% endblock %}
+
+{% block content %}
+<div class="jumbotron bg-dark rounded p-5 text-center mb-5">
+    <h1 class="display-4">Welcome to <span class="text-info">Kodo</span>AP</h1>
+    <p class="lead">Advanced invoice processing with OCR capabilities and intelligent field validation</p>
+    <hr class="my-4">
+    <p>Upload your invoices and let our system extract and validate all the necessary information.</p>
+    <div class="d-flex justify-content-center gap-3">
+        <a class="btn btn-info btn-lg" href="{{ url_for('views.upload_page') }}" role="button">
+            <i data-feather="upload-cloud"></i> Upload Invoice
+        </a>
+        <a class="btn btn-outline-light btn-lg" href="{{ url_for('views.dashboard') }}" role="button">
+            <i data-feather="bar-chart-2"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card bg-dark h-100">
+            <div class="card-body text-center">
+                <div class="display-4 text-info mb-3">
+                    <i data-feather="eye" class="feather-lg"></i>
+                </div>
+                <h3 class="card-title">OCR Processing</h3>
+                <p class="card-text">Powerful optical character recognition to extract data from invoice images and PDFs.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark h-100">
+            <div class="card-body text-center">
+                <div class="display-4 text-info mb-3">
+                    <i data-feather="check-circle" class="feather-lg"></i>
+                </div>
+                <h3 class="card-title">Field Validation</h3>
+                <p class="card-text">Intelligent validation against master data for vendors, items, and tax rates.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark h-100">
+            <div class="card-body text-center">
+                <div class="display-4 text-info mb-3">
+                    <i data-feather="database" class="feather-lg"></i>
+                </div>
+                <h3 class="card-title">Data Management</h3>
+                <p class="card-text">Store and manage all your invoice data in a structured and searchable format.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h4>How It Works</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-info">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">1</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>Upload Invoice</h5>
+                        <p class="text-muted">Upload your invoice image or PDF document.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-info">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">2</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>OCR Processing</h5>
+                        <p class="text-muted">The system extracts text and identifies key fields.</p>
+                    </div>
+                </div>
+                <div class="d-flex mb-3">
+                    <div class="me-3 text-info">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">3</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>Data Validation</h5>
+                        <p class="text-muted">Fields are validated against master data and business rules.</p>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="me-3 text-info">
+                        <div class="bg-info bg-opacity-10 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                            <span class="fw-bold">4</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h5>Review and Submit</h5>
+                        <p class="text-muted">Review extracted data, make corrections if needed, and submit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h4>Key Features</h4>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Automatic invoice data extraction
+                </li>
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Validation against company and item master data
+                </li>
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Tax calculation verification
+                </li>
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Confidence scoring for OCR results
+                </li>
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Detailed field validation error reporting
+                </li>
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Edge case detection for unusual values
+                </li>
+                <li class="list-group-item bg-dark">
+                    <i data-feather="check" class="text-info me-2"></i> Integration-ready API endpoints
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

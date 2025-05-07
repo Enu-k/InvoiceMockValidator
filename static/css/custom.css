@@ -1,0 +1,308 @@
+/* KodoAP Invoice Processing System - Custom Styles */
+
+/* Layout Adjustments */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* Card Styling */
+.card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-footer {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Table Styling */
+.table {
+    margin-bottom: 0;
+}
+
+.table-dark thead th {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.table-dark tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Form Styling */
+.form-label {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.form-control, .form-select {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: rgba(0, 0, 0, 0.4);
+    border-color: var(--bs-info);
+    box-shadow: 0 0 0 0.25rem rgba(13, 202, 240, 0.25);
+}
+
+/* Button Styling */
+.btn-info {
+    color: #fff;
+}
+
+.btn-info:hover {
+    color: #fff;
+}
+
+/* Badge Styling */
+.badge {
+    font-weight: 500;
+}
+
+/* Feather Icons */
+.feather {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+
+.feather-lg {
+    width: 2em;
+    height: 2em;
+}
+
+/* Progress Bar */
+.progress {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Print Styles */
+@media print {
+    .no-print, .no-print * {
+        display: none !important;
+    }
+    
+    body {
+        padding: 0;
+        margin: 0;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: none;
+    }
+    
+    .card-header, .card-footer {
+        background-color: transparent;
+        border: none;
+    }
+    
+    .table {
+        width: 100%;
+    }
+    
+    .table-dark {
+        color: #000;
+        background-color: transparent;
+    }
+    
+    .table-dark th, .table-dark td {
+        border-color: #000;
+        color: #000;
+        background-color: transparent;
+    }
+    
+    .text-muted {
+        color: #555 !important;
+    }
+    
+    .text-white, .text-light {
+        color: #000 !important;
+    }
+    
+    .bg-dark, .bg-secondary {
+        background-color: transparent !important;
+    }
+    
+    .badge {
+        border: 1px solid #000;
+        color: #000 !important;
+        background-color: transparent !important;
+    }
+}
+
+/* Dashboard Widgets */
+.dashboard-widget {
+    transition: transform 0.3s ease-in-out;
+}
+
+.dashboard-widget:hover {
+    transform: translateY(-5px);
+}
+
+/* Invoice Details */
+.invoice-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+}
+
+.invoice-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+}
+
+/* Custom Icons for Different File Types */
+.file-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+.file-icon-pdf {
+    background-color: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.file-icon-image {
+    background-color: rgba(13, 202, 240, 0.2);
+    color: #0dcaf0;
+}
+
+/* Custom Alert Styling */
+.alert {
+    border: none;
+    border-radius: 0.25rem;
+}
+
+.alert-info {
+    background-color: rgba(13, 202, 240, 0.1);
+    color: #0dcaf0;
+    border-left: 4px solid #0dcaf0;
+}
+
+.alert-success {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+    border-left: 4px solid #198754;
+}
+
+.alert-warning {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border-left: 4px solid #ffc107;
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border-left: 4px solid #dc3545;
+}
+
+/* Loading Animation */
+.loading-spinner {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+
+.loading-spinner:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid var(--bs-info);
+    border-color: var(--bs-info) transparent var(--bs-info) transparent;
+    animation: loading-spinner 1.2s linear infinite;
+}
+
+@keyframes loading-spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Tooltip customization */
+.tooltip .tooltip-inner {
+    background-color: var(--bs-info);
+    color: #fff;
+}
+
+.tooltip .tooltip-arrow::before {
+    border-top-color: var(--bs-info);
+}
+
+/* Toast notifications */
+.toast {
+    opacity: 1;
+}
+
+/* OCR Confidence Indicator */
+.confidence-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.confidence-high {
+    background-color: var(--bs-success);
+}
+
+.confidence-medium {
+    background-color: var(--bs-warning);
+}
+
+.confidence-low {
+    background-color: var(--bs-danger);
+}
+
+/* Invoice line items */
+.line-item-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.line-item-actions {
+    opacity: 0.2;
+    transition: opacity 0.2s ease;
+}
+
+.line-item-table tbody tr:hover .line-item-actions {
+    opacity: 1;
+}

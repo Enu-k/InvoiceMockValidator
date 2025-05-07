@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Kodo AP{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Dashboard</h3>
+                <a href="{{ url_for('views.upload_page') }}" class="btn btn-info">
+                    <i data-feather="upload-cloud"></i> Upload New Invoice
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100 border-info">
+                            <div class="card-body text-center">
+                                <h4 class="text-info mb-2">Invoice Status</h4>
+                                <div class="display-4">{{ invoices|length }}</div>
+                                <p class="text-muted">Total Invoices Processed</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100 border-info">
+                            <div class="card-body text-center">
+                                <h4 class="text-info mb-2">Processing Jobs</h4>
+                                <div class="display-4">{{ jobs|length }}</div>
+                                <p class="text-muted">Recent OCR Processing Jobs</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100 border-info">
+                            <div class="card-body text-center">
+                                <h4 class="text-info mb-2">System Status</h4>
+                                <div class="display-4 text-success">
+                                    <i data-feather="check-circle"></i>
+                                </div>
+                                <p class="text-muted">All Systems Operational</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card bg-dark shadow mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Recent Invoices</h4>
+                <a href="{{ url_for('views.invoices_list') }}" class="btn btn-sm btn-outline-info">
+                    View All
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Invoice #</th>
+                                <th>Vendor</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if invoices %}
+                                {% for invoice in invoices %}
+                                    <tr>
+                                        <td>{{ invoice.invoice_number }}</td>
+                                        <td>{{ invoice.vendor.name }}</td>
+                                        <td>{{ invoice.invoice_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>₹{{ invoice.total_amount|round(2) }}</td>
+                                        <td>
+                                            <span class="badge {% if invoice.processing_status == 'completed' %}bg-success{% elif invoice.processing_status == 'error' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                {{ invoice.processing_status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ url_for('views.invoice_detail', invoice_id=invoice.id) }}" class="btn btn-sm btn-outline-info">
+                                                <i data-feather="eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center">
+                                        <p class="my-3 text-muted">No invoices processed yet</p>
+                                        <a href="{{ url_for('views.upload_page') }}" class="btn btn-info btn-sm">
+                                            <i data-feather="upload-cloud"></i> Upload Your First Invoice
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-5">
+        <div class="card bg-dark shadow mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Recent Processing Jobs</h4>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Status</th>
+                                <th>Started</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if jobs %}
+                                {% for job in jobs %}
+                                    <tr>
+                                        <td>{{ job.job_id[:8] }}...</td>
+                                        <td>
+                                            <span class="badge {% if job.status == 'completed' %}bg-success{% elif job.status == 'error' %}bg-danger{% else %}bg-info{% endif %}">
+                                                {{ job.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ job.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            {% if job.status == 'completed' %}
+                                                <a href="{{ url_for('views.results', job_id=job.job_id) }}" class="btn btn-sm btn-outline-info">
+                                                    <i data-feather="eye"></i>
+                                                </a>
+                                            {% else %}
+                                                <a href="{{ url_for('views.processing_status', job_id=job.job_id) }}" class="btn btn-sm btn-outline-info">
+                                                    <i data-feather="activity"></i>
+                                                </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <p class="my-3 text-muted">No processing jobs yet</p>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card bg-dark shadow mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">Quick Actions</h4>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('views.upload_page') }}" class="btn btn-info">
+                        <i data-feather="upload-cloud"></i> Upload New Invoice
+                    </a>
+                    <a href="{{ url_for('views.invoices_list') }}" class="btn btn-outline-info">
+                        <i data-feather="list"></i> View All Invoices
+                    </a>
+                    <a href="{{ url_for('views.create_sample') }}" class="btn btn-outline-secondary">
+                        <i data-feather="file-plus"></i> Create Sample Invoice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark shadow mb-4">
+    <div class="card-header">
+        <h4 class="mb-0">OCR Statistics</h4>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <canvas id="confidence-chart" height="200"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="processing-chart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sample data for charts
+        const confidenceData = {
+            labels: ['90-100%', '80-90%', '70-80%', '60-70%', '<60%'],
+            datasets: [{
+                label: 'OCR Confidence Distribution',
+                data: [{{ invoices|selectattr('ocr_confidence', 'ge', 90)|list|length }}, 
+                       {{ invoices|selectattr('ocr_confidence', 'ge', 80)|selectattr('ocr_confidence', 'lt', 90)|list|length }},
+                       {{ invoices|selectattr('ocr_confidence', 'ge', 70)|selectattr('ocr_confidence', 'lt', 80)|list|length }},
+                       {{ invoices|selectattr('ocr_confidence', 'ge', 60)|selectattr('ocr_confidence', 'lt', 70)|list|length }},
+                       {{ invoices|selectattr('ocr_confidence', 'lt', 60)|list|length }}],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(23, 162, 184, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(253, 126, 20, 0.7)',
+                    'rgba(220, 53, 69, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(253, 126, 20, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        const processingData = {
+            labels: ['Completed', 'Pending', 'Processing', 'Error'],
+            datasets: [{
+                label: 'Invoice Processing Status',
+                data: [{{ jobs|selectattr('status', 'equalto', 'completed')|list|length }},
+                       {{ jobs|selectattr('status', 'equalto', 'pending')|list|length }},
+                       {{ jobs|selectattr('status', 'equalto', 'processing')|list|length }},
+                       {{ jobs|selectattr('status', 'equalto', 'error')|list|length }}],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.7)',
+                    'rgba(23, 162, 184, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(220, 53, 69, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Create confidence chart
+        const confidenceChart = new Chart(
+            document.getElementById('confidence-chart'),
+            {
+                type: 'pie',
+                data: confidenceData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#fff'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'OCR Confidence Distribution',
+                            color: '#fff'
+                        }
+                    }
+                }
+            }
+        );
+
+        // Create processing status chart
+        const processingChart = new Chart(
+            document.getElementById('processing-chart'),
+            {
+                type: 'doughnut',
+                data: processingData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#fff'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Invoice Processing Status',
+                            color: '#fff'
+                        }
+                    }
+                }
+            }
+        );
+    });
+</script>
+{% endblock %}

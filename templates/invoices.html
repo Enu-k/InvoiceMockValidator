@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoices - Kodo AP{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Invoices</h2>
+    <a href="{{ url_for('views.upload_page') }}" class="btn btn-info">
+        <i data-feather="upload-cloud"></i> Upload New Invoice
+    </a>
+</div>
+
+<div class="card bg-dark shadow">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <h3 class="mb-0">Invoice List</h3>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-md-end">
+                    <form class="d-flex" id="search-form">
+                        <input class="form-control me-2" type="search" placeholder="Search invoices..." aria-label="Search" id="search-input">
+                        <button class="btn btn-outline-info" type="submit">
+                            <i data-feather="search"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Vendor</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if invoices.items %}
+                        {% for invoice in invoices.items %}
+                            <tr>
+                                <td>{{ invoice.invoice_number }}</td>
+                                <td>{{ invoice.vendor.name }}</td>
+                                <td>{{ invoice.customer.name }}</td>
+                                <td>{{ invoice.invoice_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ invoice.due_date.strftime('%Y-%m-%d') if invoice.due_date else 'N/A' }}</td>
+                                <td>₹{{ invoice.total_amount|round(2) }}</td>
+                                <td>
+                                    <span class="badge {% if invoice.processing_status == 'completed' %}bg-success{% elif invoice.processing_status == 'error' %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ invoice.processing_status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('views.invoice_detail', invoice_id=invoice.id) }}" class="btn btn-outline-info" title="View Details">
+                                            <i data-feather="eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-secondary" title="Print" onclick="printInvoice({{ invoice.id }})">
+                                            <i data-feather="printer"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <p class="mb-3 text-muted">No invoices found</p>
+                                <a href="{{ url_for('views.upload_page') }}" class="btn btn-info">
+                                    <i data-feather="upload-cloud"></i> Upload Invoice
+                                </a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <span class="text-muted">Showing {{ (invoices.page - 1) * invoices.per_page + 1 }} to 
+                {% if invoices.page * invoices.per_page > invoices.total %}
+                    {{ invoices.total }}
+                {% else %}
+                    {{ invoices.page * invoices.per_page }}
+                {% endif %} of {{ invoices.total }} invoices</span>
+            </div>
+            <nav aria-label="Invoices pagination">
+                <ul class="pagination mb-0">
+                    <li class="page-item {% if invoices.page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('views.invoices_list', page=invoices.page-1) if invoices.page > 1 else '#' }}">
+                            <i data-feather="chevron-left"></i>
+                        </a>
+                    </li>
+                    
+                    {% for page_num in range(1, invoices.pages + 1) %}
+                        {% if page_num == invoices.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                        {% elif page_num == 1 or page_num == invoices.pages or 
+                                (page_num >= invoices.page - 2 and page_num <= invoices.page + 2) %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('views.invoices_list', page=page_num) }}">{{ page_num }}</a>
+                            </li>
+                        {% elif page_num == 2 or page_num == invoices.pages - 1 %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <li class="page-item {% if invoices.page == invoices.pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('views.invoices_list', page=invoices.page+1) if invoices.page < invoices.pages else '#' }}">
+                            <i data-feather="chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function printInvoice(invoiceId) {
+        window.open(`/invoices/${invoiceId}?print=true`, '_blank');
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                window.location.href = `{{ url_for('views.invoices_list') }}?search=${encodeURIComponent(searchTerm)}`;
+            }
+        });
+    });
+</script>
+{% endblock %}

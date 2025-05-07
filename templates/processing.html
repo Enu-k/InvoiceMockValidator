@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Processing Status - Kodo AP{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card bg-dark shadow">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">Processing Status</h3>
+                <span id="status-badge" class="badge {% if job.status == 'completed' %}bg-success{% elif job.status == 'error' %}bg-danger{% elif job.status == 'processing' %}bg-info{% else %}bg-warning{% endif %}">
+                    {{ job.status|capitalize }}
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <h5 class="alert-heading">Job ID: {{ job.job_id }}</h5>
+                    <p class="mb-0">Started: {{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    {% if job.completed_at %}
+                        <p class="mb-0">Completed: {{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                        <p class="mb-0">Processing Time: {{ (job.completed_at - job.started_at).total_seconds()|round(1) }} seconds</p>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label">Processing Status</label>
+                    <div class="progress" style="height: 25px;">
+                        <div class="progress-bar 
+                            {% if job.status == 'pending' %}bg-warning progress-bar-striped progress-bar-animated
+                            {% elif job.status == 'processing' %}bg-info progress-bar-striped progress-bar-animated
+                            {% elif job.status == 'completed' %}bg-success
+                            {% else %}bg-danger{% endif %}" 
+                            role="progressbar" 
+                            style="width: {% if job.status == 'pending' %}25%{% elif job.status == 'processing' %}75%{% elif job.status == 'completed' %}100%{% elif job.status == 'error' %}100%{% endif %}"
+                            aria-valuenow="{% if job.status == 'pending' %}25{% elif job.status == 'processing' %}75{% else %}100{% endif %}" 
+                            aria-valuemin="0" 
+                            aria-valuemax="100">
+                            {% if job.status == 'pending' %}25%{% elif job.status == 'processing' %}75%{% else %}100%{% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% if job.status == 'pending' or job.status == 'processing' %}
+                    <div class="text-center mb-4">
+                        <div class="spinner-border text-info" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <p class="text-muted mt-2" id="status-message">
+                            {% if job.status == 'pending' %}
+                                Waiting to start processing...
+                            {% else %}
+                                Running OCR and extracting data...
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="alert alert-info">
+                        <i data-feather="info" class="me-2"></i>
+                        This page will automatically refresh to show the latest status.
+                    </div>
+                {% endif %}
+                
+                {% if job.status == 'error' %}
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">Error</h5>
+                        <p>{{ job.error_message }}</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('views.upload_page') }}" class="btn btn-info">
+                            <i data-feather="upload-cloud"></i> Try Another Upload
+                        </a>
+                        <a href="{{ url_for('views.dashboard') }}" class="btn btn-outline-secondary">
+                            <i data-feather="home"></i> Back to Dashboard
+                        </a>
+                    </div>
+                {% endif %}
+                
+                {% if job.status == 'completed' %}
+                    <div class="alert alert-success">
+                        <h5 class="alert-heading">Processing Complete!</h5>
+                        <p>The invoice has been successfully processed.</p>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('views.results', job_id=job.job_id) }}" class="btn btn-info">
+                            <i data-feather="eye"></i> View Results
+                        </a>
+                        {% if job.invoice_id %}
+                            <a href="{{ url_for('views.invoice_detail', invoice_id=job.invoice_id) }}" class="btn btn-outline-info">
+                                <i data-feather="file-text"></i> View Invoice
+                            </a>
+                        {% endif %}
+                        <a href="{{ url_for('views.upload_page') }}" class="btn btn-outline-secondary">
+                            <i data-feather="upload-cloud"></i> Process Another Invoice
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const jobStatus = "{{ job.status }}";
+        
+        // Auto-refresh the page if job is still in progress
+        if (jobStatus === 'pending' || jobStatus === 'processing') {
+            setTimeout(function() {
+                window.location.reload();
+            }, 3000); // Refresh every 3 seconds
+        }
+    });
+</script>
+{% endblock %}
