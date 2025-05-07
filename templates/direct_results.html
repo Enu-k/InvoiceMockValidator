@@ -462,14 +462,14 @@
                 </td>
                 <td>
                     <input type="number" step="1" min="1" class="form-control form-control-sm item-qty" name="line_items[${newIndex}][quantity]" 
-                    value="${itemData?.quantity || 1}" required onchange="updateItemTotal(this)">
+                    value="${itemData?.quantity || 1}" required onchange="window.updateItemTotal(this)">
                 </td>
                 <td>
                     <input type="number" step="0.01" min="0" class="form-control form-control-sm item-rate" name="line_items[${newIndex}][rate]" 
-                    value="${itemData?.rate || 0}" required onchange="updateItemTotal(this)">
+                    value="${itemData?.rate || 0}" required onchange="window.updateItemTotal(this)">
                 </td>
                 <td>
-                    <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required onchange="updateItemTotal(this)">
+                    <select class="form-select form-select-sm item-gst-pct" name="line_items[${newIndex}][gst_percentage]" required onchange="window.updateItemTotal(this)">
                         <option value="0" ${itemData?.tax_percentage === 0 ? 'selected' : ''}>0%</option>
                         <option value="5" ${itemData?.tax_percentage === 5 ? 'selected' : ''}>5%</option>
                         <option value="12" ${itemData?.tax_percentage === 12 ? 'selected' : ''}>12%</option>
@@ -482,7 +482,7 @@
                     value="${itemData?.tax_amount || 0}" readonly>
                 </td>
                 <td>
-                    <select class="form-select form-select-sm item-tds-pct" name="line_items[${newIndex}][tds_percentage]" onchange="updateItemTotal(this)">
+                    <select class="form-select form-select-sm item-tds-pct" name="line_items[${newIndex}][tds_percentage]" onchange="window.updateItemTotal(this)">
                         <option value="0" selected>0%</option>
                         <option value="2">2%</option>
                         <option value="10">10%</option>
@@ -496,7 +496,7 @@
                     value="${itemData?.amount || 0}" readonly>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="removeLineItem(this)">
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-item" onclick="window.removeLineItem(this)">
                         <i data-feather="trash-2"></i>
                     </button>
                 </td>
@@ -532,7 +532,9 @@
             row.querySelector('.item-total').value = totalAmount.toFixed(2);
             
             // Update overall totals
-            updateTotals();
+            if (typeof updateTotals === 'function') {
+                updateTotals();
+            }
         };
         
         // Remove line item
@@ -547,11 +549,13 @@
             }
             
             // Update totals
-            updateTotals();
+            if (typeof updateTotals === 'function') {
+                updateTotals();
+            }
         };
         
         // Update overall totals
-        function updateTotals() {
+        window.updateTotals = function() {
             const rows = document.querySelectorAll('.line-item');
             let subtotal = 0;
             let taxTotal = 0;
