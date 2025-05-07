@@ -289,10 +289,24 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Get result data from localStorage
         const resultId = document.getElementById('result-id').value;
-        const resultsData = JSON.parse(localStorage.getItem('openai_results'));
+        let resultsData = null;
         
-        if (!resultsData) {
-            alert('Error: No results data found. Please try uploading again.');
+        try {
+            resultsData = JSON.parse(localStorage.getItem('openai_results'));
+            
+            if (!resultsData) {
+                throw new Error('No results data found');
+            }
+            
+            console.log('Loaded OpenAI results from localStorage:', resultsData);
+            
+            // Verify we have the main data structure
+            if (!resultsData.vendor || !resultsData.invoice_number) {
+                console.warn('Missing essential fields in results data:', resultsData);
+            }
+        } catch (error) {
+            console.error('Error loading results:', error);
+            alert('Error: No valid results data found. Please try uploading again.');
             window.location.href = '/upload';
             return;
         }

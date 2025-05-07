@@ -229,7 +229,22 @@
                 console.error('Error:', error);
                 statusBadge.textContent = 'Error';
                 statusBadge.className = 'badge bg-danger';
-                errorMessage.textContent = error.message;
+                
+                // Check if we're using OpenAI
+                const useOpenAI = document.getElementById('use-openai').checked;
+                
+                if (useOpenAI) {
+                    errorMessage.innerHTML = `<strong>OpenAI processing error:</strong> ${error.message}<br><br>
+                        <p>Try the following:</p>
+                        <ul>
+                            <li>Uncheck "Use OpenAI for enhanced OCR" and try again with standard OCR</li>
+                            <li>Verify that your OpenAI API key is valid</li>
+                            <li>Try with a clearer image if the invoice is hard to read</li>
+                        </ul>`;
+                } else {
+                    errorMessage.textContent = error.message;
+                }
+                
                 errorContainer.classList.remove('d-none');
                 processingSpinner.classList.add('d-none');
             });

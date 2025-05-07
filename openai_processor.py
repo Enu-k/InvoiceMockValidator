@@ -57,9 +57,47 @@ class OpenAIInvoiceProcessor:
             5. Financial details (subtotal, tax amount, discount, total amount)
             6. Other details (place of supply, terms)
             
-            Format your response as a JSON object with these fields. If you can't find a value, use null.
-            Be very precise and extract the exact values as they appear on the invoice.
+            Format your response as a JSON object with these fields. Use the following structure:
+            {
+              "vendor": {
+                "name": "Vendor Name", 
+                "gstin": "GSTIN Number",
+                "address": "Vendor Address"
+              },
+              "customer": {
+                "name": "Customer Name",
+                "gstin": "GSTIN Number",
+                "address": "Customer Address"
+              },
+              "invoice_number": "INV-12345",
+              "invoice_date": "YYYY-MM-DD",
+              "due_date": "YYYY-MM-DD",
+              "po_number": "PO-12345",
+              "place_of_supply": "Place",
+              "line_items": [
+                {
+                  "description": "Item description",
+                  "hsn_sac": "HSN/SAC code",
+                  "quantity": 1,
+                  "rate": 100.00,
+                  "tax_percentage": 18,
+                  "tax_amount": 18.00,
+                  "amount": 118.00
+                }
+              ],
+              "subtotal": 100.00,
+              "tax_amount": 18.00,
+              "discount": 0.00,
+              "total_amount": 118.00,
+              "terms": "Payment terms"
+            }
+            
+            If you can't find a value, use null. Be very precise and extract the exact values as they appear on the invoice.
+            For numeric fields (quantity, rate, tax_percentage, tax_amount, amount, subtotal, discount, total_amount), 
+            ensure they are numeric values, not strings.
             """
+            
+            logger.info("Sending request to OpenAI API")
             
             # Call OpenAI API with the image
             response = client.chat.completions.create(
@@ -81,11 +119,25 @@ class OpenAIInvoiceProcessor:
                 max_tokens=4000
             )
             
+            logger.info("Received response from OpenAI API")
+            
+            # Get the JSON content from the response
+            content = response.choices[0].message.content
+            logger.info(f"OpenAI response content: {content[:200]}...")  # Log first 200 chars to avoid huge logs
+            
             # Extract and parse the structured data
-            result_json = json.loads(response.choices[0].message.content)
+            result_json = json.loads(content)
+            logger.info(f"Parsed JSON keys: {list(result_json.keys())}")
             
             # Process the result into our expected format
             extracted_data = self.process_openai_response(result_json)
+            
+            # Log some key fields for debugging
+            if extracted_data:
+                vendor_name = extracted_data.get('vendor', {}).get('name')
+                invoice_num = extracted_data.get('invoice_number')
+                line_items_count = len(extracted_data.get('line_items', []))
+                logger.info(f"Extracted: Vendor={vendor_name}, Invoice={invoice_num}, Items={line_items_count}")
             
             logger.info(f"Successfully processed invoice image with OpenAI: {image_path}")
             return extracted_data

@@ -265,32 +265,60 @@ def test_openai_ocr():
     Test endpoint to process an invoice with OpenAI directly without async handling
     """
     if 'file' not in request.files:
-        return jsonify({'error': 'No file provided'}), 400
+        logger.error("No file provided in request")
+        return jsonify({'error': 'No file provided', 'success': False}), 400
         
     file = request.files['file']
     if file.filename == '':
-        return jsonify({'error': 'No file selected'}), 400
+        logger.error("Empty filename in request")
+        return jsonify({'error': 'No file selected', 'success': False}), 400
         
     # Check file extension
     allowed_extensions = {'png', 'jpg', 'jpeg', 'pdf', 'tiff', 'tif'}
     if not ('.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in allowed_extensions):
-        return jsonify({'error': 'Invalid file type. Allowed types: png, jpg, jpeg, pdf, tiff, tif'}), 400
+        logger.error(f"Invalid file type: {file.filename}")
+        return jsonify({
+            'error': 'Invalid file type. Allowed types: png, jpg, jpeg, pdf, tiff, tif',
+            'success': False
+        }), 400
     
     try:
         # Check if OpenAI API key is configured
         if not os.environ.get("OPENAI_API_KEY"):
+            logger.error("OpenAI API key not configured")
             return jsonify({
-                'error': 'OpenAI API key not configured. Set the OPENAI_API_KEY environment variable.'
+                'error': 'OpenAI API key not configured. Set the OPENAI_API_KEY environment variable.',
+                'success': False
             }), 400
 
+        # Log file info
+        logger.info(f"Processing file: {file.filename}, size: {file.content_length or 'unknown'}")
+        
         # Save file
         file_path = ocr_processor.save_uploaded_file(file)
+        logger.info(f"File saved to: {file_path}")
         
         # Process directly with OpenAI
         from openai_processor import OpenAIInvoiceProcessor
         openai_processor_inst = OpenAIInvoiceProcessor(current_app)
+        
+        logger.info("Starting OpenAI processing")
         result = openai_processor_inst.process_invoice_image(file_path)
         
+        if not result:
+            logger.error("Empty result returned from OpenAI processor")
+            return jsonify({
+                'error': 'Failed to extract data from the invoice',
+                'success': False
+            }), 500
+            
+        # Log success details
+        logger.info(f"Successfully processed invoice with OpenAI. Extracted fields: {list(result.keys())}")
+        
+        # Check if we have essential data
+        if not result.get('vendor', {}).get('name') or not result.get('invoice_number'):
+            logger.warning("Missing essential data in OpenAI results")
+            
         return jsonify({
             'success': True,
             'data': result,
@@ -299,7 +327,10 @@ def test_openai_ocr():
         
     except Exception as e:
         logger.exception(f"Error processing with OpenAI: {str(e)}")
-        return jsonify({'error': f'Error processing with OpenAI: {str(e)}'}), 500
+        return jsonify({
+            'error': f'Error processing with OpenAI: {str(e)}',
+            'success': False
+        }), 500
 
 @api_bp.route('/health', methods=['GET'])
 def health_check():
